@@ -49,19 +49,3 @@ if [ -d uri ]; then
 else 
   git clone https://github.com/cpp-netlib/uri/ uri
 fi
-
-if [ -d ./vcpkg-linux ]; then
-  cd vcpkg-linux
-  git remote update
-  git pull origin master
-else
-  git clone https://github.com/Microsoft/vcpkg vcpkg-linux
-  cd vcpkg-linux
-fi
-if [ ! -f ./vcpkg ]; then
-  ./bootstrap-vcpkg.sh
-  ./vcpkg integrate install
-fi
-
-# Install dependencies
-./vcpkg install zlib:x64-linux boost:x64-linux

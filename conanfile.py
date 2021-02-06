@@ -1,5 +1,5 @@
 from conans import ConanFile, CMake, tools
-
+import os
 
 class AdvancedFlexServerConan(ConanFile):
     name = "advanced-flex-server"
@@ -19,7 +19,7 @@ class AdvancedFlexServerConan(ConanFile):
             del self.options.fPIC
 
     def source(self):
-        self.run("git clone https://gitlab.com/k8s.makerlabs.us/advanced-flex-server.git")
+        self.run("git clone https://:%s@gitlab.com/k8s.makerlabs.us/advanced-flex-server.git" %( os.getenv('CI_JOB_TOKEN') ) )
 
     def build(self):
         #cmake = CMake(self)

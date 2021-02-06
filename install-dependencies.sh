@@ -50,6 +50,7 @@ else
   git clone https://github.com/cpp-netlib/uri/ uri
 fi
 cd uri
+  git submodule init
   git submodule update
   mkdir -p _build
     cd _build

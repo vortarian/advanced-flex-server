@@ -18,8 +18,8 @@ class AdvancedFlexServerConan(ConanFile):
         if self.settings.os == "Windows":
             del self.options.fPIC
 
-    def source(self):
-        self.run("git clone https://:%s@gitlab.com/k8s.makerlabs.us/advanced-flex-server.git" %( os.getenv('CI_JOB_TOKEN') ) )
+    #def source(self):
+        #self.run("git clone https://:%s@gitlab.com/k8s.makerlabs.us/advanced-flex-server.git" %( os.getenv('CI_JOB_TOKEN') ) )
 
     def build(self):
         #cmake = CMake(self)

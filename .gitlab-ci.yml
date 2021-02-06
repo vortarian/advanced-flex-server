@@ -13,39 +13,9 @@ variables:
     script:
         - python build.py
 
-clang-3.9:
-    image: conanio/clang39
+clang-10.0:
+    image: conanio/clang10
     variables:
-        CONAN_CLANG_VERSIONS: "3.9"
-    <<: *build-template
-
-clang-4.0:
-    image: conanio/clang40
-    variables:
-        CONAN_CLANG_VERSIONS: "4.0"
-    <<: *build-template
-
-clang-5.0:
-    image: conanio/clang50
-    variables:
-        CONAN_CLANG_VERSIONS: "5.0"
-    <<: *build-template
-
-clang-6.0:
-    image: conanio/clang60
-    variables:
-        CONAN_CLANG_VERSIONS: "6.0"
-    <<: *build-template
-
-clang-7.0:
-    image: conanio/clang70
-    variables:
-        CONAN_CLANG_VERSIONS: "7.0"
-    <<: *build-template
-
-clang-7.1:
-    image: conanio/clang71
-    variables:
-        CONAN_CLANG_VERSIONS: "7.1"
+        CONAN_CLANG_VERSIONS: "10.0"
     <<: *build-template
 

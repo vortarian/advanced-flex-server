@@ -84,11 +84,11 @@ add_custom_target(
     COMMAND cp -rv lib ${CMAKE_BINARY_DIR}/dist/ || true
 )
 
-add_custom_target(
-    conan_package
-    ALL
-    DEPENDS ${TARGETS} ${PROJECT_NAME} client do_always
-    COMMAND conan package ${CMAKE_SOURCE_DIR}
-    COMMAND conan export ${CMAKE_SOURCE_DIR}
-    COMMAND conan upload --all -c -r systemicai-afshttp ${CMAKE_PROJECT_NAME}/${CMAKE_PROJECT_VERSION}
-)
+#add_custom_target(
+#    conan_package
+#    ALL
+#    DEPENDS ${TARGETS} ${PROJECT_NAME} client do_always
+#    COMMAND conan package ${CMAKE_SOURCE_DIR}
+#    COMMAND conan export ${CMAKE_SOURCE_DIR}
+#    COMMAND conan upload --all -c -r systemicai-afshttp ${CMAKE_PROJECT_NAME}/${CMAKE_PROJECT_VERSION}
+#)

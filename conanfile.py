@@ -19,7 +19,7 @@ class AdvancedFlexServerConan(ConanFile):
             del self.options.fPIC
 
     def source(self):
-        self.run("git clone git@gitlab.com:k8s.makerlabs.us/advanced-flex-server.git")
+        self.run("git clone https://gitlab.com/k8s.makerlabs.us/advanced-flex-server.git")
 
     def build(self):
         #cmake = CMake(self)

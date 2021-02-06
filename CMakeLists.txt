@@ -84,6 +84,14 @@ add_custom_target(
     COMMAND cp -rv lib ${CMAKE_BINARY_DIR}/dist/ || true
 )
 
+add_custom_target(
+        conan_package
+        ALL
+        DEPENDS ${TARGETS} ${PROJECT_NAME} client do_always
+        COMMAND echo \"To perform a release:\"
+        COMMAND echo \"(example) conan create ${CMAKE_SOURCE_DIR}\"
+        COMMAND echo \"(example) conan upload -r systemicai-afshttp advanced-flex-server/0.9 --all\"
+)
 #add_custom_target(
 #    conan_package
 #    ALL

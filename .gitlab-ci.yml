@@ -3,7 +3,7 @@ variables:
     CONAN_USERNAME: "gitlab-ci"
     CONAN_REFERENCE: "advanced-flex-server/0.9"
     CONAN_CHANNEL: "gitlab-ci"
-    CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/afs-http/@True@systemicai-afshttp"
+    CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
     CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
 
 .build-template: &build-template

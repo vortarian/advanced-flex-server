@@ -9,9 +9,9 @@ variables:
     before_script:
         - sudo pip install --upgrade conan_package_tools
         - conan user
-        - conan remote systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
+        - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
         # These two env vars are set in the CICD variables in gitlab
-        - conan remote add -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
+        - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
     script:
         - python build.py
 

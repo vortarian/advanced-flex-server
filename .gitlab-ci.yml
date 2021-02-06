@@ -16,6 +16,6 @@ variables:
 clang-10.0:
     image: conanio/clang10
     variables:
-        CONAN_CLANG_VERSIONS: "10.0"
+        CONAN_CLANG_VERSIONS: "10"
     <<: *build-template
 

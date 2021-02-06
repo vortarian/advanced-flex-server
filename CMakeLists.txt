@@ -67,17 +67,14 @@ add_executable(${PROJECT_NAME}
    src/c++/systemicai/http/server/server.hpp)
 target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
-#set(COPY_LIBRARIES ${STANDARD_LIBRARIES})
-#list(FILTER COPY_LIBRARIES INCLUDE REGEX "\\.so\\.*$" )
-#file(COPY ${COPY_LIBRARIES} DESTINATION dist/lib/)
-#file(COPY bin DESTINATION dist/)
-#file(COPY cfg DESTINATION dist/)
-#file(COPY tst/html DESTINATION dist/)
-#file(COPY dependencies.html DESTINATION dist/)
+add_executable(test-server-settings
+    tst/c++/systemicai/http/server/settings_test.cpp
+    src/c++/systemicai/http/server/settings.h
+  )
 
 add_custom_target(
     do_always ALL
-    DEPENDS ${TARGETS} ${PROJECT_NAME} client
+    DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist
     COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
     # lib isn't always in projects
@@ -92,11 +89,4 @@ add_custom_target(
         COMMAND echo \"(example) conan create ${CMAKE_SOURCE_DIR}\"
         COMMAND echo \"(example) conan upload -r systemicai-afshttp advanced-flex-server/0.9 --all\"
 )
-#add_custom_target(
-#    conan_package
-#    ALL
-#    DEPENDS ${TARGETS} ${PROJECT_NAME} client do_always
-#    COMMAND conan package ${CMAKE_SOURCE_DIR}
-#    COMMAND conan export ${CMAKE_SOURCE_DIR}
-#    COMMAND conan upload --all -c -r systemicai-afshttp ${CMAKE_PROJECT_NAME}/${CMAKE_PROJECT_VERSION}
-#)
+

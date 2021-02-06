@@ -27,18 +27,19 @@ struct settings {
     size_t timeout_get;
     size_t timeout_put;
     size_t timeout_post;
-    uint64_t limit_history;
 
-    settings() = default;
-
-    settings(const pt::ptree &tr) {
+    /**
+     * @param tr Property Tree with settings.  An empty tree is provided as the
+     * default to allow default settings to be used.
+     */
+    settings(const pt::ptree &tr = pt::ptree()) {
         load(tr);
     }
 
     void load(const pt::ptree &tr) {
-        interface_address = tr.get<string>("service.interface.address");
-        interface_port = tr.get<unsigned short>("service.interface.port");
-        document_root = tr.get<string>("document.root");
+        interface_address = tr.get<string>("service.interface.address", "127.0.0.1");
+        interface_port = tr.get<unsigned short>("service.interface.port", 8080);
+        document_root = tr.get<string>("document.root", "html");
         log_level = tr.get<string>("service.log.level", "info");
         boost::algorithm::to_lower(log_level);
         ssl_certificate = tr.get<string>("service.ssl.certificate", "cfg/dumb.cert");

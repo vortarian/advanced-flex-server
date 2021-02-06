@@ -1,9 +1,8 @@
 
 variables:
-    CONAN_USERNAME: "user"
+    CONAN_USERNAME: ""
     CONAN_REFERENCE: "advanced-flex-server/0.9"
     CONAN_CHANNEL: "channel"
-    CONAN_LOGIN_USERNAME: "user"
     CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/afs-http/"
 
 .build-template: &build-template

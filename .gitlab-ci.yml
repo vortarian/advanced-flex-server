@@ -9,6 +9,7 @@ variables:
 .build-template: &build-template
     before_script:
         - sudo pip install --upgrade conan_package_tools
+        - sudo apt-get install libc++-dev
         - conan user
     script:
         - python build.py

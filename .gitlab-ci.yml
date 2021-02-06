@@ -16,6 +16,8 @@ variables:
 clang-10.0:
     image: conanio/clang10
     variables:
+        CC: "clang"
+        CXX: "clang++"
         CONAN_CLANG_VERSIONS: "10"
     <<: *build-template
 

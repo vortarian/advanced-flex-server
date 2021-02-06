@@ -11,7 +11,7 @@ variables:
         - conan user
         - conan remote systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
         # These two env vars are set in the CICD variables in gitlab
-        - conan remote -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
+        - conan remote add -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
     script:
         - python build.py
 

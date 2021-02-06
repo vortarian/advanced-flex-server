@@ -53,7 +53,7 @@ cd uri
   git submodule update
   mkdir -p _build
     cd _build
-      CC=gcc CXX=g++ cmake .
+      CC=gcc CXX=g++ cmake ..
       make
     cd ..
   mkdir -p lib

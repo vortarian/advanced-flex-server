@@ -20,14 +20,6 @@ class AdvancedFlexServerConan(ConanFile):
 
     def source(self):
         self.run("git clone git@gitlab.com:k8s.makerlabs.us/advanced-flex-server.git")
-        #self.run("bash advanced-flex-server/install-dependencies.sh")
-        # This small hack might be useful to guarantee proper /MT /MD linkage
-        # in MSVC if the packaged project doesn't have variables to set it
-        # properly
-        #@tools.replace_in_file("hello/CMakeLists.txt", "PROJECT(HelloWorld)",
-        #                      '''PROJECT(HelloWorld)
-#include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-#conan_basic_setup()''')
 
     def build(self):
         #cmake = CMake(self)

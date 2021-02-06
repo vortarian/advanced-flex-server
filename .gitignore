@@ -1,5 +1,10 @@
+# IDE
 .idea
 cmake-build-debug
-dep
 .deps
 build
+
+# conan additions
+*.pyc
+test_package/build
+

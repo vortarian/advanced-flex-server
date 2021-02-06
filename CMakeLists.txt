@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(advanced-flex-server)
 
 set(CMAKE_CXX_STANDARD 17)
-
 set(CXX clang++)
 set(CC clang)
 
@@ -30,15 +29,13 @@ ELSE()
   file (STRINGS ${CMAKE_SOURCE_DIR}/.deps DEPENDENCIES)
 ENDIF(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
 
+execute_process(COMMAND "conan info --graph=dependencies.html")
 
 add_definitions(-D_REENTRANT -DBOOST_NO_DEPRECATED )
 #add_definitions(-DBOOST_ALL_DYN_LINK)
 add_definitions(-DBOOST_ALL_NO_LIB)
 
 message(STATUS "DEPENDENCIES: ${DEPENDENCIES}")
-
-set(EXECUTABLE_OUTPUT_PATH dist/bin)
-set(LIBRARY_OUTPUT_PATH dist/lib)
 
 include_directories(src/c++)
 include_directories("${DEPENDENCIES}/date/include")
@@ -62,18 +59,36 @@ add_executable(client
         src/c++/systemicai/http/client/api.hpp)
 target_link_libraries(client ${STANDARD_LIBRARIES})
 
-add_executable(server
+add_executable(${PROJECT_NAME}
    tst/c++/systemicai/http/server/server.cpp
    src/c++/systemicai/http/server/handler.hpp
    src/c++/systemicai/common/certificate.h
    src/c++/systemicai/http/server/settings.h
    src/c++/systemicai/http/server/server.hpp)
-target_link_libraries(server ${STANDARD_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
-install(PROGRAMS DESTINATION bin)
+#set(COPY_LIBRARIES ${STANDARD_LIBRARIES})
+#list(FILTER COPY_LIBRARIES INCLUDE REGEX "\\.so\\.*$" )
+#file(COPY ${COPY_LIBRARIES} DESTINATION dist/lib/)
+#file(COPY bin DESTINATION dist/)
+#file(COPY cfg DESTINATION dist/)
+#file(COPY tst/html DESTINATION dist/)
+#file(COPY dependencies.html DESTINATION dist/)
 
-set(COPY_LIBRARIES ${STANDARD_LIBRARIES})
-list(FILTER COPY_LIBRARIES INCLUDE REGEX "\\.so\\.*$" )
-file(COPY ${COPY_LIBRARIES} DESTINATION dist/lib/)
-file(COPY cfg DESTINATION dist/)
-file(COPY tst/html DESTINATION dist/)
+add_custom_target(
+    do_always ALL
+    DEPENDS ${TARGETS} ${PROJECT_NAME} client
+    COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist
+    COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
+    # lib isn't always in projects
+    COMMAND cp -rv lib ${CMAKE_BINARY_DIR}/dist/ || true
+)
+
+add_custom_target(
+    conan_package
+    ALL
+    DEPENDS ${TARGETS} ${PROJECT_NAME} client do_always
+    COMMAND conan package ${CMAKE_SOURCE_DIR}
+    COMMAND conan export ${CMAKE_SOURCE_DIR}
+    COMMAND conan upload --all -c -r systemicai-afshttp ${CMAKE_PROJECT_NAME}/${CMAKE_PROJECT_VERSION}
+)

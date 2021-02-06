@@ -1,0 +1,51 @@
+
+variables:
+    CONAN_USERNAME: "user"
+    CONAN_REFERENCE: "advanced-flex-server/0.9"
+    CONAN_CHANNEL: "channel"
+    CONAN_LOGIN_USERNAME: "user"
+    CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/afs-http/"
+
+.build-template: &build-template
+    before_script:
+        - sudo pip install --upgrade conan_package_tools
+        - conan user
+    script:
+        - python build.py
+
+clang-3.9:
+    image: conanio/clang39
+    variables:
+        CONAN_CLANG_VERSIONS: "3.9"
+    <<: *build-template
+
+clang-4.0:
+    image: conanio/clang40
+    variables:
+        CONAN_CLANG_VERSIONS: "4.0"
+    <<: *build-template
+
+clang-5.0:
+    image: conanio/clang50
+    variables:
+        CONAN_CLANG_VERSIONS: "5.0"
+    <<: *build-template
+
+clang-6.0:
+    image: conanio/clang60
+    variables:
+        CONAN_CLANG_VERSIONS: "6.0"
+    <<: *build-template
+
+clang-7.0:
+    image: conanio/clang70
+    variables:
+        CONAN_CLANG_VERSIONS: "7.0"
+    <<: *build-template
+
+clang-7.1:
+    image: conanio/clang71
+    variables:
+        CONAN_CLANG_VERSIONS: "7.1"
+    <<: *build-template
+

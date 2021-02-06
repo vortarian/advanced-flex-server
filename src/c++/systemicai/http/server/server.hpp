@@ -20,8 +20,6 @@
 //
 //------------------------------------------------------------------------------
 
-#include "systemicai/common/certificate.h"
-#include "systemicai/http/server/settings.h"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -43,6 +41,10 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#include "systemicai/common/certificate.h"
+#include "systemicai/http/server/settings.h"
+#include "systemicai/http/server/handler.hpp"
 
 namespace beast = boost::beast;                 // from <boost/beast.hpp>
 namespace http = beast::http;                   // from <boost/beast/http.hpp>

@@ -1,11 +1,11 @@
 //------------------------------------------------------------------------------
 
-#include <systemicai/http/server/server.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
 #include <boost/property_tree/json_parser.hpp>
 #undef BOOST_BIND_GLOBAL_PLACEHOLDERS
+#include <systemicai/http/server/server.hpp>
 
 using namespace systemicai::http::server;
 using namespace std;
@@ -88,12 +88,13 @@ int main(int argc, char* argv[])
 
     pt::ptree tree;
     pt::json_parser::read_json(argv[1], tree);
-    settings s(tree);
+    settings &g(settings::globals());
+    g.load(tree);
 
-    auto const address = net::ip::make_address(s.interface_address.data());
-    auto const port = s.interface_port;
-    auto const doc_root = std::make_shared<string>(s.document_root);
-    auto const threads = std::max<int>(1, s.thread_io);
+    auto const address = net::ip::make_address(g.interface_address.data());
+    auto const port = g.interface_port;
+    auto const doc_root = std::make_shared<string>(g.document_root);
+    auto const threads = std::max<int>(1, g.thread_io);
 
     // The io_context is required for all I/O
     net::io_context ioc{threads};
@@ -102,7 +103,7 @@ int main(int argc, char* argv[])
     ssl::context ctx{ssl::context::tlsv12};
 
     // This holds the self-signed certificate used by the server
-    load_server_certificate(ctx, s);
+    load_server_certificate(ctx, g);
 
     // Create and launch a listening port
     std::make_shared<listener>(

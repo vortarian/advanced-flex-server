@@ -45,8 +45,10 @@ static const char* test_json(R"(
   }
   )");
 
+BOOST_AUTO_TEST_SUITE(test_http_server_settings)
+
 // The test case must be registered with the test runner
-BOOST_AUTO_TEST_CASE( test_http_server_settings_global )
+BOOST_AUTO_TEST_CASE( global )
 {
   systemicai::http::server::settings& settings(systemicai::http::server::settings::globals());
   systemicai::http::server::settings* null_ptr_settings(nullptr);
@@ -68,7 +70,7 @@ BOOST_AUTO_TEST_CASE( test_http_server_settings_global )
 }
 
 // The test case must be registered with the test runner
-BOOST_AUTO_TEST_CASE( test_http_server_settings_json_parsing)
+BOOST_AUTO_TEST_CASE( json_parsing )
 {
   std::stringstream s_json(test_json);
   pt::ptree tree;
@@ -89,4 +91,4 @@ BOOST_AUTO_TEST_CASE( test_http_server_settings_json_parsing)
   BOOST_TEST(settings.thread_io == 22);
 }
 
-
+BOOST_AUTO_TEST_SUITE_END()

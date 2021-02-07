@@ -73,6 +73,12 @@ add_executable(test-server-settings
   )
 
 add_custom_target(
+    unit_tests ALL
+    DEPENDS test-server-settings
+    COMMAND bin/test-server-settings --report_level=detailed
+)
+
+add_custom_target(
     do_always ALL
     DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist

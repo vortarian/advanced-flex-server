@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(advanced-flex-server)
 
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CXX clang++)
 set(CC clang)
@@ -25,7 +26,7 @@ IF(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
   file (STRINGS ${CMAKE_SOURCE_DIR}/.deps DEPENDENCIES)
 ELSE()
   message(STATUS "Linux Builds")
-  execute_process(COMMAND ${CMAKE_SOURCE_DIR}/install-dependencies.sh)
+  execute_process(COMMAND bash ${CMAKE_SOURCE_DIR}/install-dependencies.sh)
   file (STRINGS ${CMAKE_SOURCE_DIR}/.deps DEPENDENCIES)
 ENDIF(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
 

@@ -1,6 +1,6 @@
 stages:
   - prepare
-  - clang-10
+  - build
   
 variables:
   CONAN_USERNAME: "gitlab-ci"
@@ -32,10 +32,8 @@ conan-install:
   <<: *build-template
 
 clang-10.0:
-  stage: clang-10
+  stage: build
   image: conanio/clang10
-  needs:
-    - prepare
   variables:
     CC: "clang"
     CXX: "clang++"

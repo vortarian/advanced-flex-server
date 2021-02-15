@@ -24,7 +24,7 @@ conan-install:
     CXX: "clang++"
     CONAN_CLANG_VERSIONS: "10"
   script:
-  - python build.py
+  - conan install
   <<: *build-template
 
 clang-10.0:

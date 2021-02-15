@@ -28,7 +28,8 @@ conan-install:
     CXX: "clang++"
     CONAN_CLANG_VERSIONS: "10"
   script:
-  - conan install conanfile.txt
+  - conan install --build=missing conanfile.txt
+  - bash ./install-dependencies.sh
   <<: *build-template
 
 clang-10.0:

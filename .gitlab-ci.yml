@@ -34,7 +34,8 @@ conan-install:
 clang-10.0:
   stage: clang-10
   image: conanio/clang10
-  needs: conan-install
+  needs:
+    - prepare
   variables:
     CC: "clang"
     CXX: "clang++"

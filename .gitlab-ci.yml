@@ -1,26 +1,38 @@
 
 variables:
-    CONAN_USERNAME: "gitlab-ci"
-    CONAN_REFERENCE: "advanced-flex-server/0.9"
-    CONAN_CHANNEL: "gitlab-ci"
-    CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
-    CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
+  CONAN_USERNAME: "gitlab-ci"
+  CONAN_REFERENCE: "advanced-flex-server/0.9"
+  CONAN_CHANNEL: "gitlab-ci"
+  CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
+  CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
 
 .build-template: &build-template
-    before_script:
-        - sudo pip install --upgrade conan_package_tools
-        - conan user
-        - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
-        # These two env vars are set in the CICD variables in gitlab
-        - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
-    script:
-        - python build.py
+  cache:
+    paths:
+    - /home/conan/.conan
+  before_script:
+  - sudo pip install --upgrade conan_package_tools
+  - conan user
+  - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
+  # These two env vars are set in the CICD variables in gitlab
+  - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
+
+conan-install:
+  image: conanio/clang10
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CONAN_CLANG_VERSIONS: "10"
+  script:
+  - python build.py
+  <<: *build-template
 
 clang-10.0:
-    image: conanio/clang10
-    variables:
-        CC: "clang"
-        CXX: "clang++"
-        CONAN_CLANG_VERSIONS: "10"
-    <<: *build-template
-
+  image: conanio/clang10
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CONAN_CLANG_VERSIONS: "10"
+  script:
+  - python build.py
+  <<: *build-template

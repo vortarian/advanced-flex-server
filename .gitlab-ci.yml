@@ -29,6 +29,7 @@ conan-install:
 
 clang-10.0:
   image: conanio/clang10
+  needs: conan-install
   variables:
     CC: "clang"
     CXX: "clang++"

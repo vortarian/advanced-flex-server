@@ -45,6 +45,7 @@ include_directories("${DEPENDENCIES}/uri/include")
 set(STANDARD_LIBRARIES
     ${DEPENDENCIES}/uri/lib/libnetwork-uri.a
     ${CONAN_LIBS}
+    c++ # c++ is needed for linking with clang-10 in the conan container on gitlab
     ${STANDARD_LIBRARIES}
   )
 get_property(STANDARD_INCLUDES DIRECTORY PROPERTY INCLUDE_DIRECTORIES)

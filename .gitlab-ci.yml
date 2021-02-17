@@ -9,10 +9,11 @@ variables:
   CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
 
+cache:
+  paths:
+  - /home/conan/.conan
+  
 .build-template: &build-template
-  cache:
-    paths:
-    - /home/conan/.conan
   before_script:
   - sudo pip install --upgrade conan_package_tools
   - conan user

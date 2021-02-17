@@ -40,5 +40,10 @@ clang-10.0:
     CXX: "clang++"
     CONAN_CLANG_VERSIONS: "10"
   script:
-  - python build.py
+  #- python build.py
+  - mkdir -p build
+  - pushd build
+  - cmake ..
+  - make
+  - popd # build
   <<: *build-template

@@ -1,6 +1,7 @@
 stages:
   - prepare
   - build
+  - test
   
 variables:
   CONAN_USERNAME: "gitlab-ci"
@@ -8,11 +9,15 @@ variables:
   CONAN_CHANNEL: "gitlab-ci"
   CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
+  CC: "clang"
+  CXX: "clang++"
+  CONAN_CLANG_VERSIONS: "10"
 
+cache:
+  paths:
+  - /home/conan/.conan
+  
 .build-template: &build-template
-  cache:
-    paths:
-    - /home/conan/.conan
   before_script:
   - sudo pip install --upgrade conan_package_tools
   - conan user
@@ -23,10 +28,6 @@ variables:
 conan-install:
   stage: prepare
   image: conanio/clang10
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CONAN_CLANG_VERSIONS: "10"
   script:
   - conan install --build=missing conanfile.txt
   - bash ./install-dependencies.sh
@@ -35,10 +36,23 @@ conan-install:
 clang-10.0:
   stage: build
   image: conanio/clang10
-  variables:
-    CC: "clang"
-    CXX: "clang++"
-    CONAN_CLANG_VERSIONS: "10"
   script:
-  - python build.py
+  #- python build.py
+  - mkdir -p build
+  - pushd build
+  - cmake ..
+  - make
+  - popd # build
+  <<: *build-template
+
+test:
+  artifacts:
+    reports:
+      junit: build/*.report.xml
+  stage: test
+  image: conanio/clang10
+  script:
+  - pushd build
+  - make unit_tests
+  - popd # build
   <<: *build-template

@@ -77,7 +77,7 @@ add_executable(test-server-settings
 add_custom_target(
     unit_tests ALL
     DEPENDS test-server-settings
-    COMMAND bin/test-server-settings --report_level=detailed
+    COMMAND bin/test-server-settings --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=test-server-settings.report.xml
 )
 
 add_custom_target(

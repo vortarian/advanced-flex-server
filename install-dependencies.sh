@@ -47,7 +47,7 @@ if [ -d uri ]; then
   git pull origin master;
   cd ..
 else
-  git clone https://github.com/cpp-netlib/uri/ uri
+  git clone https://github.com/cpp-netlib/uri uri
 fi
 cd uri
   git submodule init

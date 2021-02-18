@@ -1,8 +1,7 @@
 stages:
   - prepare
   - build
-  - test
-  
+
 variables:
   CONAN_USERNAME: "gitlab-ci"
   CONAN_REFERENCE: "advanced-flex-server/0.9"
@@ -34,6 +33,9 @@ conan-install:
   <<: *build-template
 
 clang-10.0:
+  artifacts:
+    reports:
+      junit: build/*.report.xml
   stage: build
   image: conanio/clang10
   script:
@@ -42,17 +44,5 @@ clang-10.0:
   - pushd build
   - cmake ..
   - make
-  - popd # build
-  <<: *build-template
-
-test:
-  artifacts:
-    reports:
-      junit: build/*.report.xml
-  stage: test
-  image: conanio/clang10
-  script:
-  - pushd build
-  - make unit_tests
   - popd # build
   <<: *build-template

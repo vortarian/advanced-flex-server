@@ -27,8 +27,10 @@ cache:
   - sudo pip install --upgrade conan_package_tools
   - conan user
   - |
-    if ! conan remote list 2>&1 | grep systemicai-afshttp;
+    if conan remote list 2>&1 | grep systemicai-afshttp;
     then
+      echo Using existing remote
+    else
       conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
     fi
   # These two env vars are set in the CICD variables in gitlab

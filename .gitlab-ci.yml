@@ -33,6 +33,7 @@ cache:
       mv -v ${CONAN_USER_HOME}/.conan_1/.conan ${CONAN_USER_HOME}/.conan
       rm -rf ${CONAN_USER_HOME}/.conan_1
       ls -la ${CONAN_USER_HOME}/.conan
+      rm ${CONAN_USER_HOME}/.conan/remotes.json
     fi
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http

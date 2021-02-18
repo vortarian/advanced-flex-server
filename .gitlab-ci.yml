@@ -26,6 +26,14 @@ cache:
 .build-template: &build-template
   before_script:
   - sudo pip install --upgrade conan_package_tools
+  - |
+    if [ -d ${CONAN_USER_HOME}/.conan/.conan ]; 
+    then 
+      mv -v ${CONAN_USER_HOME}/.conan ${CONAN_USER_HOME}/.conan_1
+      mv -v ${CONAN_USER_HOME}/.conan_1/.conan ${CONAN_USER_HOME}/.conan
+      rm -rf ${CONAN_USER_HOME}/.conan_1
+      ls -la ${CONAN_USER_HOME}/.conan
+    fi
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
   # These two env vars are set in the CICD variables in gitlab - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published

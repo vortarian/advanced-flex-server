@@ -87,6 +87,11 @@ add_custom_target(
 )
 
 add_custom_target(
+    cppcheck ALL
+    COMMAND cppcheck --enable=all --inconclusive --quiet src tst
+)
+
+add_custom_target(
     do_always ALL
     DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist

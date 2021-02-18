@@ -1,5 +1,6 @@
 stages:
   - prepare
+  - sast
   - build
 
 variables:
@@ -43,6 +44,16 @@ dependencies:
   - make dependencies # Populates the cache directory with built libraries for boost, etc
   - popd # build
   <<: *build-template
+
+cppcheck:
+  stage: sast
+  image: conanio/clang10
+  script:
+    - mkdir -p build
+    - pushd build
+    - cmake ..
+    - make cppcheck
+    - popd # build
 
 clang-10.0:
   artifacts:

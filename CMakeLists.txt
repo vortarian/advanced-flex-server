@@ -99,6 +99,7 @@ add_custom_target(
         conan_package
         ALL
         DEPENDS ${TARGETS} ${PROJECT_NAME} client do_always
+        COMMAND echo \"If doing a local release:\"
         COMMAND echo \"To perform a release:\"
         COMMAND echo \"(example) conan create ${CMAKE_SOURCE_DIR}\"
         COMMAND echo \"(example) conan upload -r systemicai-afshttp advanced-flex-server/0.9 --all\"

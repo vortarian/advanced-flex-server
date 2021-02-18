@@ -54,6 +54,12 @@ message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 message(STATUS "STANDARD_INCLUDES: ${STANDARD_INCLUDES}")
 message(STATUS "STANDARD_LIBRARIES: ${STANDARD_LIBRARIES}")
 
+add_custom_target(
+        dependencies ALL
+        # This target executes everything up to this step which includes conan install & install-dependencies.sh (things not in conan)
+        COMMAND echo "Dependencies installed"
+)
+
 add_executable(client
         tst/c++/systemicai/http/client/api.cpp
         src/c++/systemicai/common/certificate.h

@@ -24,12 +24,15 @@ cache:
   # These two env vars are set in the CICD variables in gitlab
   - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
 
-conan-install:
+dependencies:
   stage: prepare
   image: conanio/clang10
   script:
-  - conan install --build=missing conanfile.txt
-  - bash ./install-dependencies.sh
+  - mkdir -p build
+  - pushd build
+  - cmake ..
+  - make dependencies # Populates the cache directory with built libraries for boost, etc
+  - popd # build
   <<: *build-template
 
 clang-10.0:

@@ -4,7 +4,7 @@ stages:
 
 variables:
   CACHE_FALLBACK_KEY: "main"
-  # This variable has to be overridden to allow caching of conan packages, which must be updated the project dir to get cached
+  # This variable has to be overridden to allow caching of conan packages, which must be updated the project dir to get cached.  This is where conan will look for the `.conan` directory
   CONAN_USER_HOME: "$CI_PROJECT_DIR"
   CONAN_USERNAME: "gitlab-ci"
   CONAN_REFERENCE: "advanced-flex-server/0.9"

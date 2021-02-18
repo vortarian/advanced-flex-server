@@ -20,7 +20,7 @@ cache:
   key: "$CI_COMMIT_REF_SLUG"
   paths:
   # Don't just cache $CONAN_USER_HOME because that includes credentials (and complicates scripts)
-  - "$CONAN_USER_HOME/data"
+  - "$CONAN_USER_HOME/.conan/data"
   - "$DEPENDENCIES"
 
 .build-template: &build-template

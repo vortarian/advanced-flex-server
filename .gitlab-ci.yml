@@ -26,18 +26,9 @@ cache:
   before_script:
   - sudo pip install --upgrade conan_package_tools
   - conan user
-  - echo ${SHELL}
-  - |
-    if conan remote list | grep systemicai-afshttp;
-    then
-      echo Using existing remote
-    else
-      echo Setting up remote
-      conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
-      conan remote list
-    fi
-  # These two env vars are set in the CICD variables in gitlab
-  - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
+  - conan remote list | grep systemicai-afshttp || conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
+  # These two env vars are set in the CICD variables in gitlab - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published
+  - [[ -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"
   # Set the dependencies directory before build so it uses the cached location
   - echo "${DEPENDENCIES}" > .deps
 

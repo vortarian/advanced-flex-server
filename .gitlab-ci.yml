@@ -28,6 +28,7 @@ cache:
   - conan user
   - "conan remote list 2>&1 | grep systemicai-afshttp || conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http"
   # These two env vars are set in the CICD variables in gitlab
+  - echo \${SHELL}
   - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
   # Set the dependencies directory before build so it uses the cached location
   - echo "${DEPENDENCIES}" > .deps

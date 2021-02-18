@@ -46,19 +46,24 @@ dependencies:
   <<: *build-template
 
 cppcheck:
-  stage: sast
+  cache:
+    policy: pull
   image: conanio/clang10
+  stage: sast
   script:
     - mkdir -p build
     - pushd build
     - cmake ..
     - make cppcheck
     - popd # build
+  <<: *build-template
 
 clang-10.0:
   artifacts:
     reports:
       junit: build/test-server-settings.report.xml
+  cache:
+    policy: pull
   stage: build
   image: conanio/clang10
   script:

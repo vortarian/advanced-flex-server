@@ -46,7 +46,7 @@ dependencies:
 clang-10.0:
   artifacts:
     reports:
-      junit: build/*.report.xml
+      junit: build/test-server-settings.report.xml
   stage: build
   image: conanio/clang10
   script:

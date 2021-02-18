@@ -3,6 +3,9 @@ stages:
   - build
 
 variables:
+  CACHE_FALLBACK_KEY: "default"
+  # This variable has to be overridden to allow caching of conan packages, which must be updated the project dir to get cached
+  CONAN_USER_HOME: "$CI_PROJECT_DIR/.conan"
   CONAN_USERNAME: "gitlab-ci"
   CONAN_REFERENCE: "advanced-flex-server/0.9"
   CONAN_CHANNEL: "gitlab-ci"
@@ -11,11 +14,13 @@ variables:
   CC: "clang"
   CXX: "clang++"
   CONAN_CLANG_VERSIONS: "10"
+  DEPENDENCIES: "${CI_PROJECT_DIR}/.deps-linux"
 
 cache:
+  key: "$CI_COMMIT_REF_SLUG"
   paths:
-  - /home/conan/.conan
-  - /builds/k8s.makerlabs.us/deps-linux
+  - "$CONAN_USER_HOME"
+  - "$DEPENDENCIES"
 
 .build-template: &build-template
   before_script:
@@ -24,6 +29,8 @@ cache:
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
   # These two env vars are set in the CICD variables in gitlab
   - conan user -r systemicai-afshttp -p ${CONAN_PASSWORD} ${CONAN_LOGIN_USERNAME}
+  # Set the dependencies directory before build so it uses the cached location
+  - echo "${DEPENDENCIES}" > .deps
 
 dependencies:
   stage: prepare
@@ -43,7 +50,6 @@ clang-10.0:
   stage: build
   image: conanio/clang10
   script:
-  #- python build.py
   - mkdir -p build
   - pushd build
   - cmake ..

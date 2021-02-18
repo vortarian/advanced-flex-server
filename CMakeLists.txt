@@ -30,7 +30,7 @@ ELSE()
   file (STRINGS ${CMAKE_SOURCE_DIR}/.deps DEPENDENCIES)
 ENDIF(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
 
-execute_process(COMMAND "conan info --graph=dependencies.html")
+execute_process(COMMAND "conan info .. --graph=dependencies.html")
 
 add_definitions(-D_REENTRANT -DBOOST_NO_DEPRECATED )
 #add_definitions(-DBOOST_ALL_DYN_LINK)

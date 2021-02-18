@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(advanced-flex-server)
 
 set(CMAKE_BUILD_TYPE Release)
@@ -38,14 +38,19 @@ add_definitions(-DBOOST_ALL_NO_LIB)
 
 find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
 if (CMAKE_CXX_CPPCHECK)
-    list(
-        APPEND CMAKE_CXX_CPPCHECK 
-            "--enable=warning"
-            "--inconclusive"
-            "--force" 
-            "--inline-suppr"
-            "--suppressions-list=${CMAKE_SOURCE_DIR}/.cppCheck.suppressions"
-    )
+  if(NOT DEFINED CONAN_USER_HOME)
+    set(CONAN_USER_HOME "${HOME}")
+  endif()
+  list(
+    APPEND CMAKE_CXX_CPPCHECK
+      "${COMPILE_DEFINITIONS}"
+      "--enable=all"
+      "--inconclusive"
+      #"--force"
+      #"--inline-suppr"
+      "--suppressions-list=${CMAKE_SOURCE_DIR}/.cppCheck.suppressions"
+      #"--suppress=missingIncludeSystem"
+  )
 endif()
 
 message(STATUS "DEPENDENCIES: ${DEPENDENCIES}")
@@ -57,7 +62,7 @@ include_directories("${DEPENDENCIES}/uri/include")
 set(STANDARD_LIBRARIES
     ${DEPENDENCIES}/uri/lib/libnetwork-uri.a
     ${CONAN_LIBS}
-    c++ # c++ is needed for linking with clang-10 in the conan container on gitlab
+    #c++ # c++ is needed for linking with clang-10 in the conan container on gitlab
     ${STANDARD_LIBRARIES}
   )
 get_property(STANDARD_INCLUDES DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -99,8 +104,8 @@ add_custom_target(
 )
 
 add_custom_target(
-    cppcheck ALL
-    COMMAND cppcheck --enable=all --inconclusive --quiet src tst
+    cppcheck
+    COMMAND ${CMAKE_CXX_CPPCHECK} ${CMAKE_SOURCE_DIR}/src/c++ ${CMAKE_SOURCE_DIR}/tst/c++
 )
 
 add_custom_target(

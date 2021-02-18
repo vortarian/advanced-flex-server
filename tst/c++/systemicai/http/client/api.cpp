@@ -94,8 +94,10 @@ int main(int argc, char **argv) {
   pt::json_parser::read_json(argv[1], tree);
   settings s(tree);
 
-  network::uri u;
+  set_log_filter(s);
+
   string const url = argv[2];
+  network::uri u(url);
   int concurrency = argc == 4 ? std::atoi(argv[3]) : s.thread_io;
   string port = u.has_port() ? u.port().to_string() : "443";
 

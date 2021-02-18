@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 
   string const url = argv[2];
   network::uri u(url);
-  int concurrency = argc == 4 ? std::atoi(argv[3]) : s.thread_io;
+  // int concurrency = argc == 4 ? std::atoi(argv[3]) : s.thread_io;
   string port = u.has_port() ? u.port().to_string() : "443";
 
   int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;

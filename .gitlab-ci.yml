@@ -26,18 +26,9 @@ cache:
 .build-template: &build-template
   before_script:
   - sudo pip install --upgrade conan_package_tools
-  - |
-    if [ -d ${CONAN_USER_HOME}/.conan/.conan ]; 
-    then 
-      mv -v ${CONAN_USER_HOME}/.conan ${CONAN_USER_HOME}/.conan_1
-      mv -v ${CONAN_USER_HOME}/.conan_1/.conan ${CONAN_USER_HOME}/.conan
-      rm -rf ${CONAN_USER_HOME}/.conan_1
-      ls -la ${CONAN_USER_HOME}/.conan
-      rm ${CONAN_USER_HOME}/.conan/remotes.json
-    fi
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
-  # These two env vars are set in the CICD variables in gitlab - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published
+  # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request
   - '[[ ! -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"'
   # Set the dependencies directory before build so it uses the cached location
   - echo "${DEPENDENCIES}" > .deps

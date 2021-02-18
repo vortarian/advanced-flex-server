@@ -46,8 +46,6 @@ dependencies:
   <<: *build-template
 
 cppcheck:
-  cache:
-    policy: pull
   image: conanio/clang10
   stage: sast
   script:

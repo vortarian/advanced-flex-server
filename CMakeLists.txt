@@ -2,12 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(advanced-flex-server)
 
 set(CMAKE_BUILD_TYPE Release)
-#set(CMAKE_CXX_STANDARD 20)
-#set(CMAKE_CXX clang++)
-#set(CMAKE_CXX_COMPILER clang)
-#set(CMAKE_CXX_COMPILER clang++)
-#set(CMAKE_CXX_FLAGS "-stdlib=c++ -std=c++2a")
-#set(CMAKE_EXE_LINKER_FLAGS -stdlib=libc++)
+set(CMAKE_CXX_STANDARD 20)
 
 # Download automatically, you can also just copy the conan.cmake file
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -18,7 +13,14 @@ endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_cmake_run(BASIC_SETUP CONANFILE conanfile.txt BUILD missing)
+# @see: https://github.com/conan-io/cmake-conan
+conan_cmake_run(
+    CONANFILE conanfile.txt
+    BASIC_SETUP
+    BUILD missing
+    # This means that the default profile was setup on the system and will be used
+    PROFILE default
+    )
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
@@ -71,7 +73,7 @@ include_directories("${DEPENDENCIES}/uri/include")
 set(STANDARD_LIBRARIES
     ${DEPENDENCIES}/uri/lib/libnetwork-uri.a
     ${CONAN_LIBS}
-    #c++ # c++ is needed for linking with clang-10 in the conan container on gitlab
+    #c++ # c++ is needed for linking with clang-10 when using libc++ in the conan container on gitlab
     ${STANDARD_LIBRARIES}
   )
 get_property(STANDARD_INCLUDES DIRECTORY PROPERTY INCLUDE_DIRECTORIES)

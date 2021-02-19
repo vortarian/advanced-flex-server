@@ -5,7 +5,9 @@
 .idea
 cmake-build-debug
 .deps
-build
+build/*
+debug/*
+release/*
 
 # conan additions
 .conan

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(advanced-flex-server)
 
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CXX clang++)
 set(CC clang)
 
@@ -68,7 +68,6 @@ include_directories("${DEPENDENCIES}/uri/include")
 set(STANDARD_LIBRARIES
     ${DEPENDENCIES}/uri/lib/libnetwork-uri.a
     ${CONAN_LIBS}
-    ${CONAN_SETTINGS_COMPILER_LIBCXX}
     #c++ # c++ is needed for linking with clang-10 in the conan container on gitlab
     ${STANDARD_LIBRARIES}
   )

@@ -12,10 +12,12 @@ variables:
   CONAN_CHANNEL: "gitlab-ci"
   CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
+  DEPENDENCIES: "${CI_PROJECT_DIR}/.deps-linux"
+  # These 4 variables are tightly coupled and change with the compiler version used
+  CXX_CONTAINER: conanio/clang10
   CC: "clang"
   CXX: "clang++"
   CXX_ABI: "libc++"
-  DEPENDENCIES: "${CI_PROJECT_DIR}/.deps-linux"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -30,11 +32,10 @@ cache:
   before_script:
   - sudo pip install --upgrade conan_package_tools
   - conan profile new default --detect
-  # Conan is hard coded to libstdc++ abit, but llvm 10 uses libc++ abi on conan/clang10 - must hardcode the option for this container
+  # Conan is hard coded to libstdc++ abi (@see: )
+  # but llvm 10 uses libc++ abi on conan/clang10
+  # must hardcode the option for this container because there is no auto detection
   - conan profile update settings.compiler.libcxx=${CXX_ABI} default
-  #- conan profile update os.compiler=${CC} default
-  #- conan profile update env.CXX=${CXX} default
-  #- conan profile update env.CC=${CC} default
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
@@ -45,7 +46,7 @@ cache:
 
 dependencies:
   stage: prepare
-  image: conanio/clang10
+  image: ${CXX_CONTAINER}
   script:
   - mkdir -p build
   - pushd build
@@ -55,7 +56,7 @@ dependencies:
   <<: *build-template
 
 cppcheck:
-  image: conanio/clang10
+  image: ${CXX_CONTAINER}
   stage: sast
   script:
     - mkdir -p build
@@ -70,7 +71,7 @@ clang-10.0:
     reports:
       junit: build/test-server-settings.report.xml
   stage: build
-  image: conanio/clang10
+  image: ${CXX_CONTAINER}
   script:
   - mkdir -p build
   - pushd build

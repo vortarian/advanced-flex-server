@@ -2,6 +2,7 @@
 boost/1.75.0@
 zlib/1.2.11@
 openssl/1.1.1i@
+cpp-netlib-uri/0.0.1@
 
 [build_requires]
 cppcheck/2.3@

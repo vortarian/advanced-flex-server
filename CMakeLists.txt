@@ -68,10 +68,8 @@ message(STATUS "DEPENDENCIES: ${DEPENDENCIES}")
 
 include_directories(src/c++)
 include_directories("${DEPENDENCIES}/date/include")
-include_directories("${DEPENDENCIES}/uri/include")
 
 set(STANDARD_LIBRARIES
-    ${DEPENDENCIES}/uri/lib/libnetwork-uri.a
     ${CONAN_LIBS}
     #c++ # c++ is needed for linking with clang-10 when using libc++ in the conan container on gitlab
     ${STANDARD_LIBRARIES}

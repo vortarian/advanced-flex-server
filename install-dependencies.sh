@@ -41,22 +41,3 @@ if [ -d date ]; then
 else 
   git clone https://github.com/HowardHinnant/date.git date
 fi
-
-if [ -d uri ]; then
-  cd uri;
-  git pull origin master;
-  cd ..
-else
-  git clone https://github.com/cpp-netlib/uri uri
-fi
-cd uri
-  git submodule init
-  git submodule update
-  mkdir -p _build
-    cd _build
-      cmake ..
-      make
-    cd ..
-  mkdir -p lib
-  cp _build/src/libnetwork-uri.a lib
-cd ..

@@ -53,6 +53,12 @@ if (CMAKE_CXX_CPPCHECK)
   )
 endif()
 
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "CMAKEVAR: ${_variableName}=${${_variableName}}")
+endforeach()
+
 message(STATUS "DEPENDENCIES: ${DEPENDENCIES}")
 
 include_directories(src/c++)

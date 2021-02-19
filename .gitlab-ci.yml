@@ -25,6 +25,8 @@ cache:
   - "$DEPENDENCIES"
 
 .build-template: &build-template
+  tags: 
+  - cpp
   before_script:
   - sudo pip install --upgrade conan_package_tools
   - conan user

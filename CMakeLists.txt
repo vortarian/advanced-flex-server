@@ -2,9 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 project(advanced-flex-server)
 
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 20)
-set(CXX clang++)
-set(CC clang)
+#set(CMAKE_CXX_STANDARD 20)
+#set(CMAKE_CXX clang++)
+#set(CMAKE_CXX_COMPILER clang)
+#set(CMAKE_CXX_COMPILER clang++)
+#set(CMAKE_CXX_FLAGS "-stdlib=c++ -std=c++2a")
+#set(CMAKE_EXE_LINKER_FLAGS -stdlib=libc++)
 
 # Download automatically, you can also just copy the conan.cmake file
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")

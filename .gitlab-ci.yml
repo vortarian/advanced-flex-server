@@ -14,6 +14,7 @@ variables:
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CC: "clang"
   CXX: "clang++"
+  CXX_FLAGS: "-stdlib=libc++ -std=c++2a"
   CONAN_CLANG_VERSIONS: "10"
   DEPENDENCIES: "${CI_PROJECT_DIR}/.deps-linux"
 
@@ -29,6 +30,7 @@ cache:
   - cpp
   before_script:
   - sudo pip install --upgrade conan_package_tools
+  - conan profile new default --detect
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
   # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request

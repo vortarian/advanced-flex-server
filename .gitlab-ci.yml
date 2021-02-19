@@ -35,7 +35,7 @@ cache:
   # Conan is hard coded to libstdc++ abi (@see: )
   # but llvm 10 uses libc++ abi on conan/clang10
   # must hardcode the option for this container because there is no auto detection
-  - conan profile update settings.compiler.libcxx=${CXX_ABI} default
+  #- conan profile update settings.compiler.libcxx=${CXX_ABI} default
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http

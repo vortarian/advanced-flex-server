@@ -14,7 +14,7 @@ variables:
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CC: "clang"
   CXX: "clang++"
-  #CXX_ABI: "libc++"
+  CXX_ABI: "libc++"
   DEPENDENCIES: "${CI_PROJECT_DIR}/.deps-linux"
 
 cache:
@@ -30,8 +30,9 @@ cache:
   before_script:
   - sudo pip install --upgrade conan_package_tools
   - conan profile new default --detect
+  # Conan is hard coded to libstdc++ abit, but llvm 10 uses libc++ abi on conan/clang10 - must hardcode the option for this container
+  - conan profile update settings.compiler.libcxx=${CXX_ABI} default
   #- conan profile update os.compiler=${CC} default
-  #- conan profile update settings.compiler.libcxx=${CXX_ABI} default
   #- conan profile update env.CXX=${CXX} default
   #- conan profile update env.CC=${CC} default
   - conan profile show default

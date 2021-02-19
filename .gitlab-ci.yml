@@ -62,9 +62,6 @@ clang-10.0:
   artifacts:
     reports:
       junit: build/test-server-settings.report.xml
-  cache:
-    key: "$CI_COMMIT_REF_SLUG"
-    policy: pull
   stage: build
   image: conanio/clang10
   script:

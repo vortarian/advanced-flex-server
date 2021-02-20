@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
+
 project(advanced-flex-server)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-std=c2x ")
 
 # Download automatically, you can also just copy the conan.cmake file
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -19,21 +21,12 @@ conan_cmake_run(
     BASIC_SETUP
     BUILD missing
     # This means that the default profile was setup on the system and will be used
-    PROFILE default
+    #PROFILE default
     )
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
 
-IF(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
-  message(STATUS "Windows Builds")
-  execute_process(COMMAND "${CMAKE_SOURCE_DIR}/install-dependencies.bat")
-  file (STRINGS ${CMAKE_SOURCE_DIR}/.deps DEPENDENCIES)
-ELSE()
-  message(STATUS "Linux Builds")
-  execute_process(COMMAND bash ${CMAKE_SOURCE_DIR}/install-dependencies.sh)
-  file (STRINGS ${CMAKE_SOURCE_DIR}/.deps DEPENDENCIES)
-ENDIF(${CMAKE_HOST_SYSTEM_NAME} MATCHES "Windows")
+conan_basic_setup(TARGETS)
 
 execute_process(COMMAND "conan info .. --graph=dependencies.html")
 
@@ -64,14 +57,11 @@ foreach (_variableName ${_variableNames})
     message(STATUS "CMAKEVAR: ${_variableName}=${${_variableName}}")
 endforeach()
 
-message(STATUS "DEPENDENCIES: ${DEPENDENCIES}")
-
 include_directories(src/c++)
-include_directories("${DEPENDENCIES}/date/include")
 
 set(STANDARD_LIBRARIES
     ${CONAN_LIBS}
-    #c++ # c++ is needed for linking with clang-10 when using libc++ in the conan container on gitlab
+#    c++ # c++ is needed for linking with clang-10 when using libc++ in the conan container on gitlab
     ${STANDARD_LIBRARIES}
   )
 get_property(STANDARD_INCLUDES DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -82,7 +72,7 @@ message(STATUS "STANDARD_LIBRARIES: ${STANDARD_LIBRARIES}")
 
 add_custom_target(
         dependencies ALL
-        # This target executes everything up to this step which includes conan install & install-dependencies.sh (things not in conan)
+        # This target executes everything up to this step which includes conan install
         COMMAND echo "Dependencies installed"
 )
 

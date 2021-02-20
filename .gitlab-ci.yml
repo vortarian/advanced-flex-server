@@ -12,7 +12,6 @@ variables:
   CONAN_CHANNEL: "gitlab-ci"
   CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
-  DEPENDENCIES: "${CI_PROJECT_DIR}/.deps-linux"
   # These 4 variables are tightly coupled and change with the compiler version used
   CXX_CONTAINER: conanio/clang10
   CC: "clang"
@@ -41,8 +40,6 @@ cache:
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
   # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request
   - '[[ ! -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"'
-  # Set the dependencies directory before build so it uses the cached location
-  - echo "${DEPENDENCIES}" > .deps
 
 dependencies:
   stage: prepare

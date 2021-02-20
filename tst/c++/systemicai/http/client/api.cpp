@@ -8,7 +8,8 @@
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
 #include <boost/property_tree/json_parser.hpp>
 #undef BOOST_BIND_GLOBAL_PLACEHOLDERS
-#include <network/uri.hpp>
+#include <boost/lexical_cast.hpp>
+#include <Poco/URI.h>
 
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
@@ -97,9 +98,9 @@ int main(int argc, char **argv) {
   set_log_filter(s);
 
   string const url = argv[2];
-  network::uri u(url);
+  Poco::URI u(url);
   // int concurrency = argc == 4 ? std::atoi(argv[3]) : s.thread_io;
-  string port = u.has_port() ? u.port().to_string() : "443";
+  string port = u.getPort() != 0 ? boost::lexical_cast<std::string>(u.getPort()) : "443";
 
   int version = argc == 5 && !std::strcmp("1.0", argv[4]) ? 10 : 11;
   // The io_context is required for all I/O
@@ -111,13 +112,13 @@ int main(int argc, char **argv) {
   // This holds the root certificate used for verification
   load_server_certificate(ctx, s);
 
-  std::list<std::shared_ptr<signing>> tokenization(1);
+  std::list< std::shared_ptr<signing> > tokenization(1);
   // Launch the asynchronous operation
   tokenization.push_back(std::make_shared<signing>(ioc, ctx));
   tokenization.back()->run(
-      u.host().to_string().data(),
+      u.getHost().data(),
       port.data(),
-      u.path().to_string().data(),
+      u.getPath().data(),
       version
   );
 

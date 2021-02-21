@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(advanced-flex-server)
 
-set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-std=c2x ")
 
@@ -64,12 +64,12 @@ message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 message(STATUS "STANDARD_INCLUDES: ${STANDARD_INCLUDES}")
 message(STATUS "STANDARD_LIBRARIES: ${STANDARD_LIBRARIES}")
 
+# STUB Target meant only to execise all the dependencies so they get built in the prepare/caching stage of cicd
 add_custom_target(
         dependencies ALL
         # This target executes everything up to this step which includes conan install
         COMMAND echo "Dependencies installed"
 )
-
 add_executable(client
         tst/c++/systemicai/http/client/api.cpp
         src/c++/systemicai/common/certificate.h
@@ -78,7 +78,7 @@ add_executable(client
 target_link_libraries(client ${STANDARD_LIBRARIES})
 
 add_executable(${PROJECT_NAME}
-   tst/c++/systemicai/http/server/server.cpp
+   src/c++/systemicai/cmd/httpd.cpp
    src/c++/systemicai/http/server/handler.hpp
    src/c++/systemicai/common/certificate.h
    src/c++/systemicai/http/server/settings.h
@@ -87,13 +87,18 @@ target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
 add_executable(test-server-settings
     tst/c++/systemicai/http/server/settings_test.cpp
-    src/c++/systemicai/http/server/settings.h
   )
+
+add_executable(test-server
+    tst/c++/systemicai/http/server/server_test.cpp
+    )
+target_link_libraries(test-server ${STANDARD_LIBRARIES})
 
 add_custom_target(
     unit_tests ALL
-    DEPENDS test-server-settings
+    DEPENDS test-server-settings test-server
     COMMAND bin/test-server-settings --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=test-server-settings.report.xml
+    COMMAND bin/test-server --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=test-server.report.xml
 )
 
 add_custom_target(
@@ -103,7 +108,7 @@ add_custom_target(
 
 add_custom_target(
     do_always ALL
-    DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings
+    DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings test-server
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist
     COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
     # lib isn't always in projects

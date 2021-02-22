@@ -39,7 +39,6 @@ cache:
   - sudo ln -fs $(which clang++-${LLVM_VERSION}) /usr/local/bin/clang++
   - sudo ln -fs $(which llvm-cov-${LLVM_VERSION}) /usr/local/bin/llvm-cov
   - sudo ln -fs $(which llvm-profdata-${LLVM_VERSION}) /usr/local/bin/llvm-profdata
-  - sudo ln -fs $(which scan-build-${LLVM_VERSION}) /usr/local/bin/scan-build
   # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request
   - '[[ ! -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"'
 
@@ -80,6 +79,7 @@ clang:
   script:
   - sudo apt update
   - sudo apt install clang-tools-${LLVM_VERSION}
+  - sudo ln -fs $(which scan-build-${LLVM_VERSION}) /usr/local/bin/scan-build
   - mkdir -p build
   - pushd build
   - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..

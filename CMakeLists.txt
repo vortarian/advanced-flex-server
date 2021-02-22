@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(advanced-flex-server)
 
 #set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-std=c2x ")
+
+project(advanced-flex-server)
 
 # Download automatically, you can also just copy the conan.cmake file
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
@@ -85,21 +86,25 @@ add_executable(${PROJECT_NAME}
    src/c++/systemicai/http/server/server.hpp)
 target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
-add_executable(test-server-settings
-    tst/c++/systemicai/http/server/settings_test.cpp
-  )
-
-add_executable(test-server
-    tst/c++/systemicai/http/server/server_test.cpp
-    )
-target_link_libraries(test-server ${STANDARD_LIBRARIES})
+add_executable(unit-tests tst/c++/systemicai/unit_tests.cpp)
+target_include_directories(unit-tests PRIVATE tst/c++)
+target_link_libraries(unit-tests ${STANDARD_LIBRARIES} -fprofile-instr-generate -fcoverage-mapping)
+target_compile_options(unit-tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
 
 add_custom_target(
-    unit_tests ALL
-    DEPENDS test-server-settings test-server
-    COMMAND bin/test-server-settings --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=test-server-settings.report.xml
-    COMMAND bin/test-server --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=test-server.report.xml
+    coverage-reports ALL
+    DEPENDS unit-tests
+    COMMAND LLVM_PROFILE_FILE=coverage/unit-tests.profraw bin/unit-tests --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=unit-tests.report.xml
 )
+
+if(CODE_COVERAGE)
+    add_custom_target(
+        coverage
+        DEPENDS coverage-reports
+        COMMAND llvm-profdata merge -sparse coverage/*.profraw -o coverage/coverage.profdata
+        COMMAND llvm-cov report bin/unit-tests -instr-profile=coverage/coverage.profdata ${CMAKE_SOURCE_DIR}/src | tee -a coverage/coverage.txt
+    )
+endif()
 
 add_custom_target(
     cppcheck
@@ -108,7 +113,7 @@ add_custom_target(
 
 add_custom_target(
     do_always ALL
-    DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings test-server
+    DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings test-server-service
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist
     COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
     # lib isn't always in projects

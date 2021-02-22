@@ -47,6 +47,24 @@ dependencies:
   - popd # build
   <<: *build-template
 
+coverage:
+  artifacts:
+    reports:
+      junit: build/test-server-settings.report.xml
+    paths:
+      - build/coverage
+  stage: sast
+  image: ${CXX_CONTAINER}
+  script:
+    - sudo apt update
+    - sudo apt install clang-tools-10
+    - mkdir -p build
+    - pushd build
+    - cmake -DCODE_COVERAGE=1 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
+    - make coverage -j 10
+    - popd # build
+  <<: *build-template
+
 cppcheck:
   image: ${CXX_CONTAINER}
   stage: sast

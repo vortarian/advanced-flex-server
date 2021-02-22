@@ -65,7 +65,7 @@ message(STATUS "STANDARD_LIBRARIES: ${STANDARD_LIBRARIES}")
 
 add_custom_target(
         build-dependencies.html ALL
-        COMMAND "conan info .. --graph=dependencies.html")
+        COMMAND conan info .. --graph=dependencies.html)
 
 # STUB Target meant only to exercise all the dependencies so they get built in the prepare/caching stage of cicd
 add_custom_target(

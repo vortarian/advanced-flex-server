@@ -42,7 +42,7 @@ dependencies:
   script:
   - mkdir -p build
   - pushd build
-  - cmake ..
+  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
   - make dependencies # Populates the cache directory with built libraries for boost, etc
   - popd # build
   <<: *build-template
@@ -51,11 +51,11 @@ cppcheck:
   image: ${CXX_CONTAINER}
   stage: sast
   script:
-    - mkdir -p build
-    - pushd build
-    - cmake ..
-    - make cppcheck
-    - popd # build
+  - mkdir -p build
+  - pushd build
+  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
+  - make cppcheck
+  - popd # build
   <<: *build-template
 
 clang-10.0:
@@ -71,7 +71,7 @@ clang-10.0:
   - sudo apt install clang-tools-10
   - mkdir -p build
   - pushd build
-  - cmake ..
+  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
   - scan-build-10 -o scan-build/reports make -j 8
   - popd # build
   <<: *build-template

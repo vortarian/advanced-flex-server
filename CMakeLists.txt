@@ -29,8 +29,6 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
 conan_basic_setup(TARGETS)
 
-execute_process(COMMAND "conan info .. --graph=dependencies.html")
-
 add_definitions(-D_REENTRANT -DBOOST_NO_DEPRECATED )
 #add_definitions(-DBOOST_ALL_DYN_LINK)
 add_definitions(-DBOOST_ALL_NO_LIB)
@@ -65,6 +63,10 @@ message(STATUS "CONAN_LIBS: ${CONAN_LIBS}")
 message(STATUS "STANDARD_INCLUDES: ${STANDARD_INCLUDES}")
 message(STATUS "STANDARD_LIBRARIES: ${STANDARD_LIBRARIES}")
 
+add_custom_target(
+        build/dependencies.html ALL
+        COMMAND "conan info .. --graph=dependencies.html")
+
 # STUB Target meant only to execise all the dependencies so they get built in the prepare/caching stage of cicd
 add_custom_target(
         dependencies ALL
@@ -92,22 +94,20 @@ target_link_libraries(unit-tests ${STANDARD_LIBRARIES} -fprofile-instr-generate 
 target_compile_options(unit-tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
 
 add_custom_target(
-    coverage-reports ALL
+    coverage-reports
     DEPENDS unit-tests
     COMMAND LLVM_PROFILE_FILE=coverage/unit-tests.profraw bin/unit-tests --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=unit-tests.report.xml
 )
 
-if(CODE_COVERAGE)
-    add_custom_target(
-        coverage
-        DEPENDS coverage-reports
-        COMMAND llvm-profdata merge -sparse coverage/*.profraw -o coverage/coverage.profdata
-        COMMAND llvm-cov report bin/unit-tests -instr-profile=coverage/coverage.profdata ${CMAKE_SOURCE_DIR}/src | tee -a coverage/coverage.txt
-    )
-endif()
+add_custom_target(
+    coverage ALL
+    DEPENDS coverage-reports
+    COMMAND llvm-profdata merge -sparse coverage/*.profraw -o coverage/coverage.profdata
+    COMMAND llvm-cov report bin/unit-tests -instr-profile=coverage/coverage.profdata ${CMAKE_SOURCE_DIR}/src | tee -a coverage/coverage.txt
+)
 
 add_custom_target(
-    cppcheck
+    cppcheck ALL
     COMMAND ${CMAKE_CXX_CPPCHECK} ${CMAKE_SOURCE_DIR}/src/c++ ${CMAKE_SOURCE_DIR}/tst/c++
 )
 

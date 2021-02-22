@@ -14,9 +14,10 @@ variables:
   CONAN_UPLOAD: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   # These 4 variables are tightly coupled and change with the compiler version used
-  CXX_CONTAINER: conanio/clang10
-  CC: "clang"
-  CXX: "clang++"
+  LLVM_VERSION: "11"
+  CC: "clang-${LLVM_VERSION}"
+  CXX: "clang++-${LLVM_VERSION}"
+  CXX_CONTAINER: "conanio/clang${LLVM_VERSION}"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -33,6 +34,11 @@ cache:
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
+  - alias clang clang-${LLVM_VERSION}
+  - alias clang++ clang++-${LLVM_VERSION}
+  - alias llvm-cov llvm-cov-${LLVM_VERSION}
+  - alias llvm-profdata llvm-profdata-${LLVM_VERSION}
+  - alias scan-build scan-build-${LLVM_VERSION}
   # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request
   - '[[ ! -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"'
 
@@ -47,23 +53,6 @@ dependencies:
   - popd # build
   <<: *build-template
 
-coverage:
-  artifacts:
-    reports:
-      junit: build/test-server-settings.report.xml
-    paths:
-      - build/coverage
-  stage: sast
-  image: ${CXX_CONTAINER}
-  script:
-    - sudo apt update
-    - sudo apt install clang-tools-10
-    - mkdir -p build
-    - pushd build
-    - cmake -DCODE_COVERAGE=1 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
-    - make coverage -j 10
-    - popd # build
-  <<: *build-template
 
 cppcheck:
   image: ${CXX_CONTAINER}
@@ -76,20 +65,23 @@ cppcheck:
   - popd # build
   <<: *build-template
 
-clang-10.0:
+clang:
   artifacts:
     reports:
-      junit: build/test-server-settings.report.xml
+      junit: build/unit-tests.report.xml
     paths:
       - build/scan-build
+      - build/coverage
+      - build/dependencies.html
+      - dist
   stage: build
   image: ${CXX_CONTAINER}
   script:
   - sudo apt update
-  - sudo apt install clang-tools-10
+  - sudo apt install clang-tools-${LLVM_VERSION}
   - mkdir -p build
   - pushd build
   - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
-  - scan-build-10 -o scan-build/reports make -j 8
+  - scan-build -o scan-build/reports make -j 10
   - popd # build
   <<: *build-template

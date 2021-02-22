@@ -34,11 +34,12 @@ cache:
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
-  - alias clang=clang-${LLVM_VERSION}
-  - alias clang++=clang++-${LLVM_VERSION}
-  - alias llvm-cov=llvm-cov-${LLVM_VERSION}
-  - alias llvm-profdata=llvm-profdata-${LLVM_VERSION}
-  - alias scan-build=scan-build-${LLVM_VERSION}
+  - mkdir -p ~/bin
+  - ln -fs \$(which clang-${LLVM_VERSION}) /usr/local/bin/clang
+  - ln -fs \$(which clang++-${LLVM_VERSION}) /usr/local/bin/clang++
+  - ln -fs \$(llvm-cov-${LLVM_VERSION}) /usr/local/bin/llvm-cov
+  - ln -fs \$(llvm-profdata-${LLVM_VERSION}) /usr/local/bin/llvm-profdata
+  - ln -fs \$(scan-build-${LLVM_VERSION}) /usr/local/bin/bin/scan-build
   # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request
   - '[[ ! -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"'
 

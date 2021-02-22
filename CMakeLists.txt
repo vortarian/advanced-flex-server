@@ -67,7 +67,7 @@ add_custom_target(
         build-dependencies.html ALL
         COMMAND "conan info .. --graph=dependencies.html")
 
-# STUB Target meant only to execise all the dependencies so they get built in the prepare/caching stage of cicd
+# STUB Target meant only to exercise all the dependencies so they get built in the prepare/caching stage of cicd
 add_custom_target(
         dependencies ALL
         # This target executes everything up to this step which includes conan install

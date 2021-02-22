@@ -113,7 +113,7 @@ add_custom_target(
 
 add_custom_target(
     do_always ALL
-    DEPENDS ${TARGETS} ${PROJECT_NAME} client test-server-settings test-server-service
+    DEPENDS ${TARGETS} ${PROJECT_NAME} client unit-tests
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist
     COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
     # lib isn't always in projects

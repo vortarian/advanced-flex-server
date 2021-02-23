@@ -18,6 +18,7 @@ variables:
   CC: "clang-${LLVM_VERSION}"
   CXX: "clang++-${LLVM_VERSION}"
   CXX_CONTAINER: "conanio/clang${LLVM_VERSION}"
+  CXX_FLAGS: "-std=c++20 -stdlib=libc++"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"

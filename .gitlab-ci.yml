@@ -30,16 +30,16 @@ cache:
   tags: 
   - cpp
   before_script:
-  - sudo pip install --upgrade conan conan_package_tools
+  - pip install --upgrade conan conan_package_tools
   - conan profile new default --detect
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http
-  - mkdir -p ~/bin
-  - sudo ln -fs $(which clang-${LLVM_VERSION}) /usr/local/bin/clang
-  - sudo ln -fs $(which clang++-${LLVM_VERSION}) /usr/local/bin/clang++
-  - sudo ln -fs $(which llvm-cov-${LLVM_VERSION}) /usr/local/bin/llvm-cov
-  - sudo ln -fs $(which llvm-profdata-${LLVM_VERSION}) /usr/local/bin/llvm-profdata
+  #- mkdir -p ~/bin
+  #- sudo ln -fs $(which clang-${LLVM_VERSION}) /usr/local/bin/clang
+  #- sudo ln -fs $(which clang++-${LLVM_VERSION}) /usr/local/bin/clang++
+  #- sudo ln -fs $(which llvm-cov-${LLVM_VERSION}) /usr/local/bin/llvm-cov
+  #- sudo ln -fs $(which llvm-profdata-${LLVM_VERSION}) /usr/local/bin/llvm-profdata
   # These two env vars are set in the CICD variables in gitlab which are only available on protected branches - if they are empty we are on a branch that isn't "protected" - e.g. is not meant to be published - probably a feature or merge request
   - '[[ ! -z "${CONAN_PASSWORD}" ]] && conan user -r systemicai-afshttp -p "${CONAN_PASSWORD}" "${CONAN_LOGIN_USERNAME}"'
 

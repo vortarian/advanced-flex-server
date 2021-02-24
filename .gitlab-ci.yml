@@ -15,9 +15,9 @@ variables:
   CONAN_REMOTE: "https://systemicai.jfrog.io/artifactory/api/conan/afs-http@True@systemicai-afshttp"
   # These 4 variables are tightly coupled and change with the compiler version used
   LLVM_VERSION: "11"
-  CC: "clang-${LLVM_VERSION}"
-  CXX: "clang++-${LLVM_VERSION}"
-  CXX_CONTAINER: "conanio/clang${LLVM_VERSION}"
+  CC: "clang"
+  CXX: "clang++"
+  CXX_CONTAINER: "registry.gitlab.com/k8s.makerlabs.us/build-cxx:ubi8-clang-${LLVM_VERSION}"
   CXX_FLAGS: "-std=c++20 -stdlib=libc++"
 
 cache:
@@ -30,7 +30,7 @@ cache:
   tags: 
   - cpp
   before_script:
-  - sudo pip install --upgrade conan_package_tools
+  - sudo pip install --upgrade conan conan_package_tools
   - conan profile new default --detect
   - conan profile show default
   - conan user
@@ -54,17 +54,17 @@ dependencies:
   - popd # build
   <<: *build-template
 
-
-cppcheck:
-  image: ${CXX_CONTAINER}
-  stage: sast
-  script:
-  - mkdir -p build
-  - pushd build
-  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
-  - make cppcheck
-  - popd # build
-  <<: *build-template
+# The value add of this stage is pretty questionable since cppcheck is also run in the main build
+#cppcheck:
+#  image: ${CXX_CONTAINER}
+#  stage: sast
+#  script:
+#  - mkdir -p build
+#  - pushd build
+#  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
+#  - make cppcheck
+#  - popd # build
+#  <<: *build-template
 
 clang:
   artifacts:
@@ -78,9 +78,9 @@ clang:
   stage: build
   image: ${CXX_CONTAINER}
   script:
-  - sudo apt update
-  - sudo apt install clang-tools-${LLVM_VERSION}
-  - sudo ln -fs $(which scan-build-${LLVM_VERSION}) /usr/local/bin/scan-build
+  #  - sudo apt update
+  #- sudo apt install clang-tools-${LLVM_VERSION}
+  #- sudo ln -fs $(which scan-build-${LLVM_VERSION}) /usr/local/bin/scan-build
   - mkdir -p build
   - pushd build
   - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..

@@ -30,7 +30,7 @@ cache:
   tags: 
   - cpp
   before_script:
-  - pip3 install --upgrade conan conan_package_tools
+  #- pip3 install --upgrade conan conan_package_tools
   - conan profile new default --detect
   - conan profile show default
   - conan user

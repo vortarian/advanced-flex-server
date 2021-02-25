@@ -10,6 +10,7 @@ namespace pt = boost::property_tree;
 // The test case must be registered with the test runner
 BOOST_AUTO_TEST_CASE( test_systemicai_http_server_settings )
 {
+  boost::log::core::get()->set_filter( boost::log::trivial::severity >= boost::log::trivial::trace );
   systemicai::http::server::settings& settings(systemicai::http::server::settings::globals());
   systemicai::http::server::settings* null_ptr_settings(nullptr);
   // Be sure it isn't a null reference

@@ -1,11 +1,15 @@
 //------------------------------------------------------------------------------
 
+#include <thread>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
+
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
 #include <boost/property_tree/json_parser.hpp>
 #undef BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <systemicai/http/server/server.hpp>
+#include <systemicai/common/certificate.h>
+#include <systemicai/common/exception.h>
 
 using namespace systemicai::http::server;
 using namespace std;
@@ -16,42 +20,11 @@ class service {
   private:
   // The io_context is required for all I/O
   std::shared_ptr<boost::asio::io_context> _ioc;
+  ssl::context& _ssl_ctx;
   const settings &_s;
 
-  //------------------------------------------------------------------------------
-  void load_server_certificate(boost::asio::ssl::context& ctx)
-  {
-    ifstream cs(_s.ssl_certificate), ks(_s.ssl_key), ds(_s.ssl_dh);
-
-    std::string const cert(istreambuf_iterator<char>{cs}, {});
-    std::string const key(istreambuf_iterator<char>{ks}, {});
-    std::string const dh(istreambuf_iterator<char>{ds}, {});
-
-    ctx.set_password_callback(
-        [](std::size_t,
-           boost::asio::ssl::context_base::password_purpose)
-        {
-          return "test";
-        });
-
-    ctx.set_options(
-        boost::asio::ssl::context::default_workarounds |
-        boost::asio::ssl::context::no_sslv2 |
-        boost::asio::ssl::context::single_dh_use);
-
-    ctx.use_certificate_chain(
-        boost::asio::buffer(cert.data(), cert.size()));
-
-    ctx.use_private_key(
-        boost::asio::buffer(key.data(), key.size()),
-        boost::asio::ssl::context::file_format::pem);
-
-    ctx.use_tmp_dh(
-        boost::asio::buffer(dh.data(), dh.size()));
-  }
-
   public:
-  explicit service(const settings& s) : _s(s) {
+  explicit service(const settings& s, ssl::context& sslc) : _s(s), _ssl_ctx(sslc) {
   }
 
   /**
@@ -71,16 +44,10 @@ class service {
     auto const port = _s.interface_port;
     auto const doc_root = std::make_shared<string>(_s.document_root);
 
-    // The SSL context is required, and holds certificates
-    ssl::context ctx{ssl::context::tlsv12};
-
-    // This holds the self-signed certificate used by the server
-    load_server_certificate(ctx);
-
     // Create and launch a listening port
     std::make_shared<listener>(
         *_ioc,
-        ctx,
+        _ssl_ctx,
         boost::asio::ip::tcp::endpoint{address, port},
         doc_root)->run();
 
@@ -117,6 +84,18 @@ class service {
     _ioc.reset();
 
     return EXIT_SUCCESS;
+  }
+
+
+
+  /**
+   * Return true if the service is running and handling requests, false otherwise.
+   * @return
+   */
+  bool running() {
+    if(!_ioc)
+      return false;
+    return !_ioc->stopped();
   }
 
   /**

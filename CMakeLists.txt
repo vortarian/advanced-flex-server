@@ -22,7 +22,7 @@ conan_cmake_run(
     BASIC_SETUP
     BUILD missing
     # This means that the default profile was setup on the system and will be used
-    #PROFILE default
+    PROFILE default
     )
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -90,13 +90,18 @@ target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
 add_executable(unit-tests tst/c++/systemicai/unit_tests.cpp)
 target_include_directories(unit-tests PRIVATE tst/c++)
-target_link_libraries(unit-tests ${STANDARD_LIBRARIES} -fprofile-instr-generate -fcoverage-mapping)
-target_compile_options(unit-tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+target_link_libraries(unit-tests ${STANDARD_LIBRARIES})
+
+# The coverage tests is the same code, but seperated out to save build time during local debugging
+add_executable(coverage-tests tst/c++/systemicai/unit_tests.cpp)
+target_include_directories(coverage-tests PRIVATE tst/c++)
+target_link_libraries(coverage-tests ${STANDARD_LIBRARIES} -fprofile-instr-generate -fcoverage-mapping)
+target_compile_options(coverage-tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
 
 add_custom_target(
     coverage-reports
-    DEPENDS unit-tests
-    COMMAND LLVM_PROFILE_FILE=coverage/unit-tests.profraw bin/unit-tests --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=unit-tests.report.xml
+    DEPENDS coverage-tests
+    COMMAND LLVM_PROFILE_FILE=coverage/coverage-tests.profraw bin/coverage-tests --detect_memory_leaks --report_level=detailed --report_format=XML --report_sink=coverage-tests.report.xml
 )
 
 add_custom_target(
@@ -129,4 +134,3 @@ add_custom_target(
     COMMAND echo \"(example) conan create ${CMAKE_SOURCE_DIR}\"
     COMMAND echo \"(example) conan upload -r systemicai-afshttp advanced-flex-server/0.9 --all\"
 )
-

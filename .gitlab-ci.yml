@@ -18,7 +18,7 @@ variables:
   CC: "clang"
   CXX: "clang++"
   CXX_CONTAINER: "registry.gitlab.com/k8s.makerlabs.us/build-cxx:ubi8-clang-${LLVM_VERSION}"
-  CXX_FLAGS: "-std=c++20 -stdlib=libc++"
+  CXX_FLAGS: "-std=c++20 -stdlib=libc++ -lstdc++fs"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -83,7 +83,7 @@ clang:
   #- sudo ln -fs $(which scan-build-${LLVM_VERSION}) /usr/local/bin/scan-build
   - mkdir -p build
   - pushd build
-  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
+  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   - scan-build -o scan-build/reports make -j 10
   - popd # build
   <<: *build-template

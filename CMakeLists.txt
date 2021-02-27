@@ -109,7 +109,7 @@ add_custom_target(
     coverage ALL
     DEPENDS coverage-reports
     COMMAND llvm-profdata merge -sparse coverage/*.profraw -o coverage/coverage.profdata
-    COMMAND llvm-cov report bin/unit-tests -instr-profile=coverage/coverage.profdata ${CMAKE_SOURCE_DIR}/src | tee -a coverage/coverage.txt
+    COMMAND llvm-cov report bin/coverage-tests -instr-profile=coverage/coverage.profdata ${CMAKE_SOURCE_DIR}/src | tee -a coverage/coverage.txt
 )
 
 add_custom_target(

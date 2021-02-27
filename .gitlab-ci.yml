@@ -74,7 +74,7 @@ clang:
       - build/scan-build
       - build/coverage
       - build/dependencies.html
-      - dist
+      - build/dist
   stage: build
   image: ${CXX_CONTAINER}
   script:

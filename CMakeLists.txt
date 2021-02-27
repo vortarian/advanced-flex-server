@@ -56,6 +56,7 @@ set(STANDARD_LIBRARIES
     ${CONAN_LIBS}
 #    c++ # c++ is needed for linking with clang-10 when using libc++ in the conan container on gitlab
     ${STANDARD_LIBRARIES}
+    ${EXTRA_LIBS}
   )
 get_property(STANDARD_INCLUDES DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 message(STATUS "CONAN_INCLUDE_DIRS: ${CONAN_INCLUDE_DIRS}")

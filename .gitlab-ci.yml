@@ -1,7 +1,6 @@
 stages:
   - prepare
   - build
-  - publish
 
 variables:
   CACHE_FALLBACK_KEY: "main"
@@ -49,21 +48,13 @@ dependencies:
 
 clang:
   artifacts:
-  - name: junit
     reports:
       junit: build/coverage-tests.report.xml
-  - name: sast
     paths:
       - build/scan-build
       - build/coverage
       - build/dependencies.html
-  - name: advanced-flex-server
-    paths:
-    - build/dist/advanced-flex-server
-  - name: tests
-    paths:
-      - build/dist/unit-tests
-      - build/dist/coverage-tests
+      - build/dist
   stage: build
   image: ${CXX_CONTAINER}
   script:
@@ -73,61 +64,3 @@ clang:
   - scan-build -o scan-build/reports --exclude ${CONAN_USER_HOME}/.conan/data make -j 10
   - popd # build
   <<: *build-template
-
-publish-junit:
-  artifacts:
-    name: junit
-    reports:
-      junit: build/coverage-tests.report.xml
-  dependencies:
-  - clang
-  stage: publish
-  script:
-    - echo
-
-publish-sast:
-  artifacts:
-    name: sast
-    paths:
-    - build/scan-build
-    - build/coverage
-    - build/dependencies.html
-  dependencies:
-  - clang
-  stage: publish
-  script:
-    - echo
-
-publish-server:
-  artifacts:
-    name: advanced-flex-server
-    paths:
-      - build/dist/advanced-flex-server
-  dependencies:
-  - clang
-  stage: publish
-  script:
-    - echo
-
-publish-client:
-  artifacts:
-    name: client
-    paths:
-      - build/dist/client
-  dependencies:
-  - clang
-  stage: publish
-  script:
-    - echo
-
-publish-tests:
-  artifacts:
-    name: tests
-    paths:
-    - build/dist/unit-tests
-    - build/dist/coverage-tests
-  dependencies:
-  - clang
-  stage: publish
-  script:
-    - echo

@@ -82,6 +82,8 @@ publish-junit:
   dependencies:
   - clang
   stage: publish
+  script:
+    - echo
 
 publish-sast:
   artifacts:
@@ -93,6 +95,8 @@ publish-sast:
   dependencies:
   - clang
   stage: publish
+  script:
+    - echo
 
 publish-server:
   artifacts:
@@ -102,6 +106,8 @@ publish-server:
   dependencies:
   - clang
   stage: publish
+  script:
+    - echo
 
 publish-client:
   artifacts:
@@ -111,6 +117,8 @@ publish-client:
   dependencies:
   - clang
   stage: publish
+  script:
+    - echo
 
 publish-tests:
   artifacts:
@@ -121,3 +129,5 @@ publish-tests:
   dependencies:
   - clang
   stage: publish
+  script:
+    - echo

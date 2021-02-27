@@ -83,7 +83,7 @@ clang:
   #- sudo ln -fs $(which scan-build-${LLVM_VERSION}) /usr/local/bin/scan-build
   - mkdir -p build
   - pushd build
-  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
   - scan-build -o scan-build/reports make -j 10
   - popd # build
   <<: *build-template

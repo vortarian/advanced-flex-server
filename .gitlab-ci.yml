@@ -37,6 +37,8 @@ cache:
   #- conan profile update env.CXX_FLAGS="${CXX_FLAGS}" default
   - conan profile update settings.compiler.libcxx=${CXX_STANDARD_LIBRARY} default
   - conan profile update settings.compiler.cppstd=${CXX_STANDARD} default
+  # libmysqlclient uses C++ reserved words from the cxx17/20 standard as member variables, so have to allow a lower c++ standard for it
+  - conan profile update settings.libmysqlclient:compiler.cppstd=14 default
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http

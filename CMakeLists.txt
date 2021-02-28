@@ -17,7 +17,7 @@ conan_cmake_run(
     BASIC_SETUP
     BUILD missing
     # This means that the default profile was setup on the system and will be used
-    PROFILE
+    PROFILE default
     )
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)

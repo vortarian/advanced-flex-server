@@ -22,7 +22,7 @@ conan_cmake_run(
     BASIC_SETUP
     BUILD missing
     # This means that the default profile was setup on the system and will be used
-    # PROFILE default
+    PROFILE default
     )
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -54,7 +54,6 @@ include_directories(src/c++)
 
 set(STANDARD_LIBRARIES
     ${CONAN_LIBS}
-#    c++ # c++ is needed for linking with clang-10 when using libc++ in the conan container on gitlab
     ${STANDARD_LIBRARIES}
     ${EXTRA_LIBS}
   )

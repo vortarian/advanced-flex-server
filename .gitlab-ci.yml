@@ -16,6 +16,7 @@ variables:
   LLVM_VERSION: "11"
   CC: "clang"
   CXX: "clang++"
+  CXX_STANDARD: 20
   CXX_CONTAINER: "registry.gitlab.com/k8s.makerlabs.us/build-cxx:ubi8-clang-${LLVM_VERSION}"
   CXX_FLAGS: "-std=c++20 -stdlib=libc++ -lstdc++fs"
 
@@ -30,6 +31,11 @@ cache:
   - cpp
   before_script:
   - conan profile new default --detect
+  - conan profile update env.CC=${CC} default
+  - conan profile update env.CXX=${CXX} default
+  - conan profile update env.CXX_FLAGS="${CXX_FLAGS}" default
+  - conan profile update settings.compiler.libcxx=libc++ default
+  - conan profile update settings.compiler.cppstd=${CXX_STANDARD} default
   - conan profile show default
   - conan user
   - conan remote add systemicai-afshttp https://systemicai.jfrog.io/artifactory/api/conan/afs-http

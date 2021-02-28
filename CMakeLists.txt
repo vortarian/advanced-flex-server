@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-
-#set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-std=c++20 ")
-
 project(advanced-flex-server)
 
 # Download automatically, you can also just copy the conan.cmake file
@@ -22,7 +17,7 @@ conan_cmake_run(
     BASIC_SETUP
     BUILD missing
     # This means that the default profile was setup on the system and will be used
-    PROFILE default
+    PROFILE
     )
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)

@@ -5,6 +5,8 @@
 : ${CXXFLAGS:="-std=c++20 -stdlib=libc++"}
 : ${CMAKE_BUILD_TYPE:="Release"}
 
+export CC CXX CXXFLAGS
+
 ROOT_DIR=$(dirname $0)
 mkdir -p ${ROOT_DIR}/build
 pushd ${ROOT_DIR}/build

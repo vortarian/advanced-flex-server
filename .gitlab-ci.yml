@@ -58,7 +58,7 @@ clang:
   script:
   - mkdir -p build
   - pushd build
-  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+  - cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ..
   - scan-build -o scan-build/reports --exclude ${CONAN_USER_HOME}/.conan/data make -j 10
   - popd # build
   <<: *build-template

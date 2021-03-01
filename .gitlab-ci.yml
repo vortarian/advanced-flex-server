@@ -17,7 +17,7 @@ variables:
   CC: "clang"
   CXX: "clang++"
   CXX_STANDARD: "20"
-  CXX_STANDARD_LIBRARY: "libc++"
+  CXX_STANDARD_LIBRARY: "libstdc++"
   CXX_CONTAINER: "registry.gitlab.com/k8s.makerlabs.us/build-cxx:ubi8-clang-${LLVM_VERSION}"
   #CXX_FLAGS: "-std=c++20 -stdlib=libc++ -lstdc++fs"
 

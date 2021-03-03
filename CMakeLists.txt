@@ -77,10 +77,12 @@ target_link_libraries(client ${STANDARD_LIBRARIES})
 
 add_executable(${PROJECT_NAME}
    src/c++/systemicai/cmd/httpd.cpp
+   src/c++/systemicai/http/server/functions.cpp
+   src/c++/systemicai/http/server/server.cpp
    src/c++/systemicai/http/server/handler.hpp
    src/c++/systemicai/common/certificate.h
    src/c++/systemicai/http/server/settings.h
-   src/c++/systemicai/http/server/server.hpp)
+   src/c++/systemicai/http/server/server.h)
 target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
 add_executable(unit-tests tst/c++/systemicai/unit_tests.cpp)
@@ -115,7 +117,7 @@ add_custom_target(
     do_always ALL
     DEPENDS ${TARGETS} ${PROJECT_NAME} client unit-tests coverage-tests
     COMMAND mkdir -p ${CMAKE_BINARY_DIR}/dist
-    COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
+    COMMAND cp -rv bin ${CMAKE_SOURCE_DIR}/cfg ${CMAKE_SOURCE_DIR}/tst/html ${CMAKE_BINARY_DIR}/dist/
     # lib isn't always in projects
     COMMAND cp -rv lib ${CMAKE_BINARY_DIR}/dist/ || true
 )

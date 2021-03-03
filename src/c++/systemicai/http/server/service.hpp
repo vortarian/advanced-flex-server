@@ -7,7 +7,7 @@
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS 1
 #include <boost/property_tree/json_parser.hpp>
 #undef BOOST_BIND_GLOBAL_PLACEHOLDERS
-#include <systemicai/http/server/server.hpp>
+#include <systemicai/http/server/server.h>
 #include <systemicai/common/certificate.h>
 #include <systemicai/common/exception.h>
 

@@ -15,10 +15,10 @@ class service {
   // The io_context is required for all I/O
   std::shared_ptr<boost::asio::io_context> _ioc;
   ssl::context& _ssl_ctx;
-  const settings &_s;
+  const settings& settings_;
 
   public:
-  explicit service(const settings& s, ssl::context& sslc) : _s(s), _ssl_ctx(sslc) {
+  explicit service(const settings& s, ssl::context& sslc) : settings_(s), _ssl_ctx(sslc) {
   }
 
   /**
@@ -32,18 +32,19 @@ class service {
       // If this is set, the service is already running
       return EXIT_FAILURE;
     }
-    auto const threads = std::max<int>(1, _s.thread_io);
+    auto const threads = std::max<int>(1, settings_.thread_io);
     _ioc = std::make_shared<boost::asio::io_context>(threads);
-    auto const address = boost::asio::ip::make_address(_s.interface_address.data());
-    auto const port = _s.interface_port;
-    auto const doc_root = std::make_shared<string>(_s.document_root);
+    auto const address = boost::asio::ip::make_address(settings_.interface_address.data());
+    auto const port = settings_.interface_port;
+    auto const doc_root = std::make_shared<string>(settings_.document_root);
 
     // Create and launch a listening port
     std::make_shared<listener>(
         *_ioc,
         _ssl_ctx,
         boost::asio::ip::tcp::endpoint{address, port},
-        doc_root)->run();
+        doc_root,
+        settings_)->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     boost::asio::signal_set signals(*_ioc, SIGINT, SIGTERM);

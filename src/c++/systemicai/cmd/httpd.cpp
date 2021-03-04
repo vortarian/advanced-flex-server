@@ -4,6 +4,8 @@
 #include <boost/property_tree/json_parser.hpp>
 #undef BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <systemicai/http/server/service.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 using namespace systemicai::http::server;
 using namespace std;

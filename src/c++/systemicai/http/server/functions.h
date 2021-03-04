@@ -10,7 +10,8 @@
 // Official repository: https://github.com/boostorg/beast
 //
 
-#include <boost/beast/core.hpp>
+#include <systemicai/http/server/namespace.h>
+#include <systemicai/http/server/settings.h>
 
 namespace systemicai::http::server {
 

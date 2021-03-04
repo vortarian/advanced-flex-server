@@ -86,4 +86,5 @@ namespace systemicai::http::server {
 
         std::cerr << what << ": " << ec.message() << "\n";
     }
+
 } // namespace systemicai::http::server

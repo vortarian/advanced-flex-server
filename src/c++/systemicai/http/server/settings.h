@@ -14,6 +14,7 @@ struct settings {
     unsigned short interface_port;
     string document_root;
     string log_level;
+    string service_version;
     string ssl_certificate;
     string ssl_key;
     string ssl_dh;
@@ -45,7 +46,8 @@ struct settings {
         timeout_get = tr.get<size_t>("service.timeout.get", 300);
         timeout_put = tr.get<size_t>("service.timeout.put", 300);
         timeout_post = tr.get<size_t>("service.timeout.post", 300);
-    }
+        service_version = tr.get<string>("service.version", "alpha");
+    };
 
     operator pt::ptree() {
         pt::ptree tr;
@@ -61,6 +63,7 @@ struct settings {
         tr.put("service.timeout.get", timeout_get);
         tr.put("service.timeout.put", timeout_put);
         tr.put("service.timeout.post", timeout_post);
+        tr.put("service.version", service_version);
         return tr;
     }
 

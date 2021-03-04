@@ -31,114 +31,6 @@
 #include "functions.h"
 
 namespace systemicai::http::server {
-    // This function produces an HTTP response for the given
-    // request. The type of the response object depends on the
-    // contents of the request, so the interface requires the
-    // caller to pass a generic lambda for receiving the response.
-    template<
-            class Body, class Allocator,
-            class Send>
-    void
-    handle_request(
-            beast::string_view doc_root,
-            beast::http::request<Body, beast::http::basic_fields<Allocator>>&& req,
-            Send&& send)
-    {
-        // Returns a bad request response
-        auto const bad_request =
-                [&req](beast::string_view why)
-                {
-                    beast::http::response<beast::http::string_body> res{beast::http::status::bad_request, req.version()};
-                    res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(beast::http::field::content_type, "text/html");
-                    res.keep_alive(req.keep_alive());
-                    res.body() = std::string(why);
-                    res.prepare_payload();
-                    return res;
-                };
-
-        // Returns a not found response
-        auto const not_found =
-                [&req](beast::string_view target)
-                {
-                    beast::http::response<beast::http::string_body> res{beast::http::status::not_found, req.version()};
-                    res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(beast::http::field::content_type, "text/html");
-                    res.keep_alive(req.keep_alive());
-                    res.body() = "The resource '" + std::string(target) + "' was not found.";
-                    res.prepare_payload();
-                    return res;
-                };
-
-        // Returns a server error response
-        auto const server_error =
-                [&req](beast::string_view what)
-                {
-                    beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, req.version()};
-                    res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(beast::http::field::content_type, "text/html");
-                    res.keep_alive(req.keep_alive());
-                    res.body() = "An error occurred: '" + std::string(what) + "'";
-                    res.prepare_payload();
-                    return res;
-                };
-
-        // Make sure we can handle the method
-        if( req.method() != beast::http::verb::get &&
-            req.method() != beast::http::verb::head)
-            return send(bad_request("Unknown HTTP-method"));
-
-        // Request path must be absolute and not contain "..".
-        if( req.target().empty() ||
-            req.target()[0] != '/' ||
-            req.target().find("..") != beast::string_view::npos)
-            return send(bad_request("Illegal request-target"));
-
-        // Build the path to the requested file
-        std::string path = path_cat(doc_root, req.target());
-        if(req.target().back() == '/')
-            path.append("index.html");
-
-        // Attempt to open the file
-        beast::error_code ec;
-        beast::http::file_body::value_type body;
-        body.open(path.c_str(), beast::file_mode::scan, ec);
-
-        // Handle the case where the file doesn't exist
-        if(ec == beast::errc::no_such_file_or_directory)
-            return send(not_found(req.target()));
-
-        // Handle an unknown error
-        if(ec)
-            return send(server_error(ec.message()));
-
-        // Cache the size since we need it after the move
-        auto const size = body.size();
-
-        // Respond to HEAD request
-        if(req.method() == beast::http::verb::head)
-        {
-            beast::http::response<beast::http::empty_body> res{beast::http::status::ok, req.version()};
-            res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(beast::http::field::content_type, mime_type(path));
-            res.content_length(size);
-            res.keep_alive(req.keep_alive());
-            return send(std::move(res));
-        }
-
-        // Respond to GET request
-        beast::http::response<beast::http::file_body> res{
-                std::piecewise_construct,
-                std::make_tuple(std::move(body)),
-                std::make_tuple(beast::http::status::ok, req.version())};
-        res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(beast::http::field::content_type, mime_type(path));
-        res.content_length(size);
-        res.keep_alive(req.keep_alive());
-        return send(std::move(res));
-    }
-
-    //------------------------------------------------------------------------------
 
     // Echoes back all received WebSocket messages.
     // This uses the Curiously Recurring Template Pattern so that
@@ -440,6 +332,7 @@ namespace systemicai::http::server {
 
         std::shared_ptr<std::string const> doc_root_;
         queue queue_;
+        const settings& settings_;
 
         // The parser is stored in an optional container so we can
         // construct it from scratch it at the beginning of each new message.
@@ -452,10 +345,12 @@ namespace systemicai::http::server {
         // Construct the session
         http_session(
                 beast::flat_buffer buffer,
-                std::shared_ptr<std::string const> const& doc_root)
+                std::shared_ptr<std::string const> const& doc_root,
+                const settings& s)
                 : doc_root_(doc_root)
                 , queue_(*this)
                 , buffer_(std::move(buffer))
+                , settings_(s)
         {
         }
 
@@ -510,7 +405,7 @@ namespace systemicai::http::server {
             }
 
             // Send the response
-            handle_request(*doc_root_, parser_->release(), queue_);
+            handlers::handle_request(*doc_root_, parser_->release(), queue_, settings_);
 
             // If we aren't at the queue limit, try to pipeline another request
             if(! queue_.is_full())
@@ -555,10 +450,12 @@ namespace systemicai::http::server {
         plain_http_session(
                 beast::tcp_stream&& stream,
                 beast::flat_buffer&& buffer,
-                std::shared_ptr<std::string const> const& doc_root)
+                std::shared_ptr<std::string const> const& doc_root,
+                const settings& s)
                 : http_session<plain_http_session>(
                 std::move(buffer),
-                doc_root)
+                doc_root,
+                s)
                 , stream_(std::move(stream))
         {
         }
@@ -611,10 +508,12 @@ namespace systemicai::http::server {
                 beast::tcp_stream&& stream,
                 ssl::context& ctx,
                 beast::flat_buffer&& buffer,
-                std::shared_ptr<std::string const> const& doc_root)
+                std::shared_ptr<std::string const> const& doc_root,
+                const settings& s)
                 : http_session<ssl_http_session>(
                 std::move(buffer),
-                doc_root)
+                doc_root,
+                s)
                 , stream_(std::move(stream), ctx)
         {
         }

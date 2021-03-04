@@ -27,6 +27,7 @@
 
 
 namespace systemicai::http::server {
+  using namespace std;
   namespace beast = boost::beast;       // from <boost/beast.hpp>
   namespace net = boost::asio;          // from <boost/asio.hpp>
   namespace ssl = boost::asio::ssl;     // from <boost/asio/ssl.hpp>

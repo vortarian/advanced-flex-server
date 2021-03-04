@@ -1,11 +1,7 @@
-#include <boost/beast/core.hpp>
-#include <boost/asio/ssl.hpp>
+#include <systemicai/http/server/namespace.h>
 #include <iostream>
 
 namespace systemicai::http::server {
-
-    namespace beast = boost::beast;                 // from <boost/beast.hpp>
-    namespace net = boost::asio;                    // from <boost/asio.hpp>
 
     // Return a reasonable mime type based on the extension of a file.
     beast::string_view mime_type(beast::string_view path)

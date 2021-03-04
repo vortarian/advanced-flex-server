@@ -2,12 +2,11 @@
 
 #include <thread>
 
+#include <systemicai/http/server/namespace.h>
 #include <systemicai/http/server/server.h>
 #include <systemicai/common/certificate.h>
 #include <systemicai/common/exception.h>
 
-using namespace systemicai::http::server;
-using namespace std;
 
 namespace systemicai::http::server {
 

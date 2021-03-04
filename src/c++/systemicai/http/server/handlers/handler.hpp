@@ -9,9 +9,7 @@ namespace systemicai::http::server::handlers {
 
 template <class Body, class Allocator, class Send> class handler {
 public:
-  int handle(boost::beast::http::request<
-               Body, boost::beast::http::basic_fields<Allocator>
-             > &req) {
+  int handle(boost::beast::http::request< Body, boost::beast::http::basic_fields<Allocator> > &req) {
     return 200;
   };
 };

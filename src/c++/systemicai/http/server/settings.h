@@ -3,9 +3,7 @@
 
 #include <systemicai/http/server/namespace.h>
 
-namespace systemicai {
-namespace http {
-namespace server {
+namespace systemicai::http::server {
 
 using std::string;
 using std::size_t;
@@ -72,8 +70,6 @@ struct settings {
     }
 };
 
-}
-}
 }
 
 #endif // SYSTEMICAI_HTTP_SERVER_SETTINGS_H

@@ -15,11 +15,13 @@
 
 #define BOOST_TEST_MODULE test-systemicai-http
 #include <boost/test/included/unit_test.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 #include <cstddef>
 #include <systemicai/http/server/settings.h>
 #include <systemicai/http/server/service.hpp>
-#include <systemicai/http/server/server.hpp>
+#include <systemicai/http/server/server.h>
 
 // All of our unit tests must be included between these two macros (and must not use these two macros)
 BOOST_AUTO_TEST_SUITE(test_systemicai_http)

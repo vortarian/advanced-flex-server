@@ -3,7 +3,9 @@
 //
 // This file is included from tst/c++/systemicai/unit_tests.cpp
 
-namespace pt = boost::property_tree;
+namespace {
+  using namespace systemicai::http::server;
+  namespace pt = boost::property_tree;
 
   void run_service(service& s, std::timed_mutex& tms) {
     try {
@@ -119,3 +121,4 @@ namespace pt = boost::property_tree;
 
     std::cout << "This test doesn't actually do anything yet - STUB only atm";
   }
+}

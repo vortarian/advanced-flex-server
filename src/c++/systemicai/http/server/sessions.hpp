@@ -14,18 +14,6 @@
 //
 //------------------------------------------------------------------------------
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/bind_executor.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/make_unique.hpp>
-#include <boost/optional.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <functional>
@@ -35,20 +23,14 @@
 #include <thread>
 #include <vector>
 
+#include <systemicai/http/server/namespace.h>
 #include "systemicai/common/certificate.h"
 #include "systemicai/http/server/settings.h"
-#include "systemicai/http/server/handler.hpp"
+#include "systemicai/http/server/handlers.hpp"
 
 #include "functions.h"
 
 namespace systemicai::http::server {
-
-    namespace beast = boost::beast;                 // from <boost/beast.hpp>
-    namespace http = beast::http;                   // from <boost/beast/http.hpp>
-    namespace websocket = beast::websocket;         // from <boost/beast/websocket.hpp>
-    namespace ssl = boost::asio::ssl;               // from <boost/asio/ssl.hpp>
-    using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
-
     // This function produces an HTTP response for the given
     // request. The type of the response object depends on the
     // contents of the request, so the interface requires the
@@ -59,16 +41,16 @@ namespace systemicai::http::server {
     void
     handle_request(
             beast::string_view doc_root,
-            http::request<Body, http::basic_fields<Allocator>>&& req,
+            beast::http::request<Body, beast::http::basic_fields<Allocator>>&& req,
             Send&& send)
     {
         // Returns a bad request response
         auto const bad_request =
                 [&req](beast::string_view why)
                 {
-                    http::response<http::string_body> res{http::status::bad_request, req.version()};
-                    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(http::field::content_type, "text/html");
+                    beast::http::response<beast::http::string_body> res{beast::http::status::bad_request, req.version()};
+                    res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+                    res.set(beast::http::field::content_type, "text/html");
                     res.keep_alive(req.keep_alive());
                     res.body() = std::string(why);
                     res.prepare_payload();
@@ -79,9 +61,9 @@ namespace systemicai::http::server {
         auto const not_found =
                 [&req](beast::string_view target)
                 {
-                    http::response<http::string_body> res{http::status::not_found, req.version()};
-                    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(http::field::content_type, "text/html");
+                    beast::http::response<beast::http::string_body> res{beast::http::status::not_found, req.version()};
+                    res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+                    res.set(beast::http::field::content_type, "text/html");
                     res.keep_alive(req.keep_alive());
                     res.body() = "The resource '" + std::string(target) + "' was not found.";
                     res.prepare_payload();
@@ -92,9 +74,9 @@ namespace systemicai::http::server {
         auto const server_error =
                 [&req](beast::string_view what)
                 {
-                    http::response<http::string_body> res{http::status::internal_server_error, req.version()};
-                    res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-                    res.set(http::field::content_type, "text/html");
+                    beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, req.version()};
+                    res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+                    res.set(beast::http::field::content_type, "text/html");
                     res.keep_alive(req.keep_alive());
                     res.body() = "An error occurred: '" + std::string(what) + "'";
                     res.prepare_payload();
@@ -102,8 +84,8 @@ namespace systemicai::http::server {
                 };
 
         // Make sure we can handle the method
-        if( req.method() != http::verb::get &&
-            req.method() != http::verb::head)
+        if( req.method() != beast::http::verb::get &&
+            req.method() != beast::http::verb::head)
             return send(bad_request("Unknown HTTP-method"));
 
         // Request path must be absolute and not contain "..".
@@ -119,7 +101,7 @@ namespace systemicai::http::server {
 
         // Attempt to open the file
         beast::error_code ec;
-        http::file_body::value_type body;
+        beast::http::file_body::value_type body;
         body.open(path.c_str(), beast::file_mode::scan, ec);
 
         // Handle the case where the file doesn't exist
@@ -134,23 +116,23 @@ namespace systemicai::http::server {
         auto const size = body.size();
 
         // Respond to HEAD request
-        if(req.method() == http::verb::head)
+        if(req.method() == beast::http::verb::head)
         {
-            http::response<http::empty_body> res{http::status::ok, req.version()};
-            res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-            res.set(http::field::content_type, mime_type(path));
+            beast::http::response<beast::http::empty_body> res{beast::http::status::ok, req.version()};
+            res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+            res.set(beast::http::field::content_type, mime_type(path));
             res.content_length(size);
             res.keep_alive(req.keep_alive());
             return send(std::move(res));
         }
 
         // Respond to GET request
-        http::response<http::file_body> res{
+        beast::http::response<beast::http::file_body> res{
                 std::piecewise_construct,
                 std::make_tuple(std::move(body)),
-                std::make_tuple(http::status::ok, req.version())};
-        res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        res.set(http::field::content_type, mime_type(path));
+                std::make_tuple(beast::http::status::ok, req.version())};
+        res.set(beast::http::field::server, BOOST_BEAST_VERSION_STRING);
+        res.set(beast::http::field::content_type, mime_type(path));
         res.content_length(size);
         res.keep_alive(req.keep_alive());
         return send(std::move(res));
@@ -177,7 +159,7 @@ namespace systemicai::http::server {
         // Start the asynchronous operation
         template<class Body, class Allocator>
         void
-        do_accept(http::request<Body, http::basic_fields<Allocator>> req)
+        do_accept(beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
         {
             // Set suggested timeout settings for the websocket
             derived().ws().set_option(
@@ -189,7 +171,7 @@ namespace systemicai::http::server {
                     websocket::stream_base::decorator(
                             [](websocket::response_type& res)
                             {
-                                res.set(http::field::server,
+                                res.set(beast::http::field::server,
                                         std::string(BOOST_BEAST_VERSION_STRING) +
                                         " advanced-server-flex");
                             }));
@@ -267,7 +249,7 @@ namespace systemicai::http::server {
         // Start the asynchronous operation
         template<class Body, class Allocator>
         void
-        run(http::request<Body, http::basic_fields<Allocator>> req)
+        run(beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
         {
             // Accept the WebSocket upgrade request
             do_accept(std::move(req));
@@ -334,7 +316,7 @@ namespace systemicai::http::server {
     void
     make_websocket_session(
             beast::tcp_stream stream,
-            http::request<Body, http::basic_fields<Allocator>> req)
+            beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
     {
         std::make_shared<plain_websocket_session>(
                 std::move(stream))->run(std::move(req));
@@ -344,7 +326,7 @@ namespace systemicai::http::server {
     void
     make_websocket_session(
             beast::ssl_stream<beast::tcp_stream> stream,
-            http::request<Body, http::basic_fields<Allocator>> req)
+            beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
     {
         std::make_shared<ssl_websocket_session>(
                 std::move(stream))->run(std::move(req));
@@ -417,17 +399,17 @@ namespace systemicai::http::server {
             // Called by the HTTP handler to send a response.
             template<bool isRequest, class Body, class Fields>
             void
-            operator()(http::message<isRequest, Body, Fields>&& msg)
+            operator()(beast::http::message<isRequest, Body, Fields>&& msg)
             {
                 // This holds a work item
                 struct work_impl : work
                 {
                     http_session& self_;
-                    http::message<isRequest, Body, Fields> msg_;
+                    beast::http::message<isRequest, Body, Fields> msg_;
 
                     work_impl(
                             http_session& self,
-                            http::message<isRequest, Body, Fields>&& msg)
+                            beast::http::message<isRequest, Body, Fields>&& msg)
                             : self_(self)
                             , msg_(std::move(msg))
                     {
@@ -436,7 +418,7 @@ namespace systemicai::http::server {
                     void
                     operator()()
                     {
-                        http::async_write(
+                        beast::http::async_write(
                                 self_.derived().stream(),
                                 msg_,
                                 beast::bind_front_handler(
@@ -461,7 +443,7 @@ namespace systemicai::http::server {
 
         // The parser is stored in an optional container so we can
         // construct it from scratch it at the beginning of each new message.
-        boost::optional<http::request_parser<http::string_body>> parser_;
+        boost::optional<beast::http::request_parser<beast::http::string_body>> parser_;
 
     protected:
         beast::flat_buffer buffer_;
@@ -492,7 +474,7 @@ namespace systemicai::http::server {
                     derived().stream()).expires_after(std::chrono::seconds(30));
 
             // Read a request using the parser-oriented interface
-            http::async_read(
+            beast::http::async_read(
                     derived().stream(),
                     buffer_,
                     *parser_,
@@ -507,7 +489,7 @@ namespace systemicai::http::server {
             boost::ignore_unused(bytes_transferred);
 
             // This means they closed the connection
-            if(ec == http::error::end_of_stream)
+            if(ec == beast::http::error::end_of_stream)
                 return derived().do_eof();
 
             if(ec)

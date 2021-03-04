@@ -24,7 +24,6 @@
 
 using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 namespace ssl = boost::asio::ssl;       // from <boost/asio/ssl.hpp>
-namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
 
 //------------------------------------------------------------------------------
 
@@ -38,8 +37,8 @@ class signing : public std::enable_shared_from_this<signing> {
   tcp::resolver resolver_;
   ssl::stream<tcp::socket> stream_;
   boost::beast::flat_buffer buffer_; // (Must persist between reads)
-  http::request<http::empty_body> req_;
-  http::response<http::string_body> res_;
+  beast::http::request<beast::http::empty_body> req_;
+  beast::http::response<beast::http::string_body> res_;
 
 public:
   // Resolver and stream require an io_context
@@ -59,10 +58,10 @@ public:
 
     // Set up an HTTP GET request message
     req_.version(version);
-    req_.method(http::verb::get);
+    req_.method(beast::http::verb::get);
     req_.target(target);
-    req_.set(http::field::host, host);
-    req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    req_.set(beast::http::field::host, host);
+    req_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
     // Look up the domain name
     resolver_.async_resolve(
@@ -108,7 +107,7 @@ public:
       return fail(ec, "handshake");
 
     // Send the HTTP request to the remote host
-    http::async_write(stream_, req_,
+    beast::http::async_write(stream_, req_,
                       std::bind(
                         &signing::on_write,
                         shared_from_this(),
@@ -123,7 +122,7 @@ public:
       return fail(ec, "write");
 
     // Receive the HTTP response
-    http::async_read(stream_, buffer_, res_,
+    beast::http::async_read(stream_, buffer_, res_,
                      std::bind(
                        &signing::on_read,
                        shared_from_this(),
@@ -167,8 +166,8 @@ class master : public std::enable_shared_from_this<master> {
     tcp::resolver resolver_;
     ssl::stream<tcp::socket> stream_;
     boost::beast::flat_buffer buffer_; // (Must persist between reads)
-    http::request<http::empty_body> req_;
-    http::response<http::string_body> res_;
+    beast::http::request<beast::http::empty_body> req_;
+    beast::http::response<beast::http::string_body> res_;
 
 public:
     // Resolver and stream require an io_context
@@ -188,10 +187,10 @@ public:
 
         // Set up an HTTP GET request message
         req_.version(version);
-        req_.method(http::verb::get);
+        req_.method(beast::http::verb::get);
         req_.target(target);
-        req_.set(http::field::host, host);
-        req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req_.set(beast::http::field::host, host);
+        req_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Look up the domain name
         resolver_.async_resolve(
@@ -237,7 +236,7 @@ public:
             return fail(ec, "handshake");
 
         // Send the HTTP request to the remote host
-        http::async_write(stream_, req_,
+        beast::http::async_write(stream_, req_,
                           std::bind(
                                   &master::on_write,
                                   shared_from_this(),
@@ -252,7 +251,7 @@ public:
             return fail(ec, "write");
 
         // Receive the HTTP response
-        http::async_read(stream_, buffer_, res_,
+        beast::http::async_read(stream_, buffer_, res_,
                          std::bind(
                                  &master::on_read,
                                  shared_from_this(),
@@ -295,8 +294,8 @@ class child : public std::enable_shared_from_this<child> {
     tcp::resolver resolver_;
     ssl::stream<tcp::socket> stream_;
     boost::beast::flat_buffer buffer_; // (Must persist between reads)
-    http::request<http::empty_body> req_;
-    http::response<http::string_body> res_;
+    beast::http::request<beast::http::empty_body> req_;
+    beast::http::response<beast::http::string_body> res_;
 
 public:
     // Resolver and stream require an io_context
@@ -316,10 +315,10 @@ public:
 
         // Set up an HTTP GET request message
         req_.version(version);
-        req_.method(http::verb::get);
+        req_.method(beast::http::verb::get);
         req_.target(target);
-        req_.set(http::field::host, host);
-        req_.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+        req_.set(beast::http::field::host, host);
+        req_.set(beast::http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Look up the domain name
         resolver_.async_resolve(
@@ -365,7 +364,7 @@ public:
             return fail(ec, "handshake");
 
         // Send the HTTP request to the remote host
-        http::async_write(stream_, req_,
+        beast::http::async_write(stream_, req_,
                           std::bind(
                                   &child::on_write,
                                   shared_from_this(),
@@ -380,7 +379,7 @@ public:
             return fail(ec, "write");
 
         // Receive the HTTP response
-        http::async_read(stream_, buffer_, res_,
+        beast::http::async_read(stream_, buffer_, res_,
                          std::bind(
                                  &child::on_read,
                                  shared_from_this(),

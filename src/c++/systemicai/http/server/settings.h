@@ -1,10 +1,7 @@
 #ifndef SYSTEMICAI_HTTP_SERVER_SETTINGS_H
 #define SYSTEMICAI_HTTP_SERVER_SETTINGS_H
 
-
-#include <boost/algorithm/string.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/chrono.hpp>
+#include <systemicai/http/server/namespace.h>
 
 namespace systemicai {
 namespace http {

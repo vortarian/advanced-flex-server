@@ -79,21 +79,27 @@ add_executable(${PROJECT_NAME}
    src/c++/systemicai/cmd/httpd.cpp
    src/c++/systemicai/http/server/functions.cpp
    src/c++/systemicai/http/server/server.cpp
-   src/c++/systemicai/http/server/handler.hpp
+   src/c++/systemicai/http/server/handlers.hpp
    src/c++/systemicai/common/certificate.h
    src/c++/systemicai/http/server/settings.h
    src/c++/systemicai/http/server/server.h)
 target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
-add_executable(unit-tests tst/c++/systemicai/unit_tests.cpp)
+add_executable(unit-tests
+  tst/c++/systemicai/unit_tests.cpp
+  src/c++/systemicai/http/server/functions.cpp
+  src/c++/systemicai/http/server/server.cpp)
 target_include_directories(unit-tests PRIVATE tst/c++)
 target_link_libraries(unit-tests ${STANDARD_LIBRARIES})
 
 # The coverage tests is the same code, but seperated out to save build time during local debugging
-add_executable(coverage-tests tst/c++/systemicai/unit_tests.cpp)
+add_executable(coverage-tests
+  tst/c++/systemicai/unit_tests.cpp
+  src/c++/systemicai/http/server/functions.cpp
+  src/c++/systemicai/http/server/server.cpp)
 target_include_directories(coverage-tests PRIVATE tst/c++)
-target_link_libraries(coverage-tests ${STANDARD_LIBRARIES} -fprofile-instr-generate -fcoverage-mapping)
 target_compile_options(coverage-tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+target_link_libraries(coverage-tests ${STANDARD_LIBRARIES} -fprofile-instr-generate -fcoverage-mapping)
 
 add_custom_target(
     coverage-reports

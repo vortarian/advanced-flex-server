@@ -1,4 +1,5 @@
 #
+.cache
 .deps-linux # CICD uses this directory because jobs don't share this, but local builds will put it in the parent directory. This is ignored here so that cicd doesn't ever push it to a branch
 
 # IDE

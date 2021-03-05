@@ -5,6 +5,9 @@
 
 // This macro must be called before including the header
 
+#include <systemicai/http/server/namespace.h>
+#include <boost/test/included/unit_test.hpp>
+
 namespace pt = boost::property_tree;
 
 // The test case must be registered with the test runner

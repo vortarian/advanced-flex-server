@@ -3,9 +3,12 @@
 //
 // This file is included from tst/c++/systemicai/unit_tests.cpp
 
-namespace {
+#include <systemicai/http/server/namespace.h>
+#include <boost/test/included/unit_test.hpp>
+
   using namespace systemicai::http::server;
   namespace pt = boost::property_tree;
+  namespace ssl = boost::asio::ssl;
 
   void run_service(service& s, std::timed_mutex& tms) {
     try {
@@ -121,4 +124,3 @@ namespace {
 
     std::cout << "This test doesn't actually do anything yet - STUB only atm";
   }
-}

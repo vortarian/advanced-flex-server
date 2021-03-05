@@ -18,7 +18,7 @@ class service {
   const settings& settings_;
 
   public:
-  explicit service(const settings& s, ssl::context& sslc) : settings_(s), _ssl_ctx(sslc) {
+  explicit service(const settings& s, ssl::context& sslc) : _ssl_ctx(sslc), settings_(s) {
   }
 
   /**

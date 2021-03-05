@@ -4,6 +4,7 @@
 namespace systemicai::http::server {
 
     // Return a reasonable mime type based on the extension of a file.
+    // cppcheck-suppress "unusedFunction"
     beast::string_view mime_type(beast::string_view path)
     {
         using beast::iequals;
@@ -40,6 +41,7 @@ namespace systemicai::http::server {
 
     // Append an HTTP rel-path to a local filesystem path.
     // The returned path is normalized for the platform.
+    // cppcheck-suppress "unusedFunction"
     std::string path_cat( beast::string_view base, beast::string_view path) {
         if(base.empty())
             return std::string(path);

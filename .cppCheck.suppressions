@@ -1,1 +1,2 @@
 *:*.conan/data/*
+unusedFunction:*/systemicai/http/server/functions.cpp

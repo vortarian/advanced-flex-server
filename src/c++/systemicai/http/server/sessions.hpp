@@ -349,8 +349,8 @@ namespace systemicai::http::server {
                 const settings& s)
                 : doc_root_(doc_root)
                 , queue_(*this)
-                , buffer_(std::move(buffer))
                 , settings_(s)
+                , buffer_(std::move(buffer))
         {
         }
 

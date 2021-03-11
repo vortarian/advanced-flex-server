@@ -4,5 +4,6 @@
 #include <systemicai/http/server/namespace.h>
 #include "handlers/handler.hpp"
 #include "handlers/default.hpp"
+#include "handlers/registry.hpp"
 
 #endif // SYSTEMICAI_HTTP_SERVER_HANDLERS_HPP

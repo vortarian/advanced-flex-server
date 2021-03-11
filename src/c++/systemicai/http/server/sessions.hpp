@@ -23,10 +23,11 @@
 #include <thread>
 #include <vector>
 
-#include <systemicai/http/server/namespace.h>
 #include <systemicai/common/certificate.h>
-#include <systemicai/http/server/settings.h>
 #include <systemicai/http/server/handlers.hpp>
+#include <systemicai/http/server/namespace.h>
+#include <systemicai/http/server/settings.h>
+#include <systemicai/http/server/queue.hpp>
 
 #include "boost/beast/http/fields.hpp"
 #include "functions.h"
@@ -34,561 +35,350 @@
 
 namespace systemicai::http::server {
 
-    // Echoes back all received WebSocket messages.
-    // This uses the Curiously Recurring Template Pattern so that
-    // the same code works with both SSL streams and regular sockets.
-    template<class Derived>
-    class websocket_session
-    {
-        // Access the derived class, this is part of
-        // the Curiously Recurring Template Pattern idiom.
-        Derived&
-        derived()
-        {
-            return static_cast<Derived&>(*this);
-        }
+// Echoes back all received WebSocket messages.
+// This uses the Curiously Recurring Template Pattern so that
+// the same code works with both SSL streams and regular sockets.
+template <class Derived> class websocket_session {
+  // Access the derived class, this is part of
+  // the Curiously Recurring Template Pattern idiom.
+  Derived &derived() { return static_cast<Derived &>(*this); }
 
-        beast::flat_buffer buffer_;
+  beast::flat_buffer buffer_;
 
-        // Start the asynchronous operation
-        template<class Body, class Allocator>
-        void
-        do_accept(beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
-        {
-            // Set suggested timeout settings for the websocket
-            derived().ws().set_option(
-                    websocket::stream_base::timeout::suggested(
-                            beast::role_type::server));
+  // Start the asynchronous operation
+  template <class Body, class Allocator>
+  void do_accept(
+      beast::http::request<Body, beast::http::basic_fields<Allocator>> req) {
+    // Set suggested timeout settings for the websocket
+    derived().ws().set_option(
+        websocket::stream_base::timeout::suggested(beast::role_type::server));
 
-            // Set a decorator to change the Server of the handshake
-            derived().ws().set_option(
-                    websocket::stream_base::decorator(
-                            [](websocket::response_type& res)
-                            {
-                                res.set(beast::http::field::server,
-                                        std::string(BOOST_BEAST_VERSION_STRING) +
-                                        " advanced-server-flex");
-                            }));
+    // Set a decorator to change the Server of the handshake
+    derived().ws().set_option(
+        websocket::stream_base::decorator([](websocket::response_type &res) {
+          res.set(beast::http::field::server,
+                  std::string(BOOST_BEAST_VERSION_STRING) +
+                      " advanced-server-flex");
+        }));
 
-            // Accept the websocket handshake
-            derived().ws().async_accept(
-                    req,
-                    beast::bind_front_handler(
-                            &websocket_session::on_accept,
-                            derived().shared_from_this()));
-        }
+    // Accept the websocket handshake
+    derived().ws().async_accept(
+        req, beast::bind_front_handler(&websocket_session::on_accept,
+                                       derived().shared_from_this()));
+  }
 
-        void
-        on_accept(beast::error_code ec)
-        {
-            if(ec)
-                return fail(ec, "accept");
+  void on_accept(beast::error_code ec) {
+    if (ec)
+      return fail(ec, "accept");
 
-            // Read a message
-            do_read();
-        }
+    // Read a message
+    do_read();
+  }
 
-        void
-        do_read()
-        {
-            // Read a message into our buffer
-            derived().ws().async_read(
-                    buffer_,
-                    beast::bind_front_handler(
-                            &websocket_session::on_read,
-                            derived().shared_from_this()));
-        }
+  void do_read() {
+    // Read a message into our buffer
+    derived().ws().async_read(
+        buffer_, beast::bind_front_handler(&websocket_session::on_read,
+                                           derived().shared_from_this()));
+  }
 
-        void
-        on_read(
-                beast::error_code ec,
-                std::size_t bytes_transferred)
-        {
-            boost::ignore_unused(bytes_transferred);
+  void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+    boost::ignore_unused(bytes_transferred);
 
-            // This indicates that the websocket_session was closed
-            if(ec == websocket::error::closed)
-                return;
+    // This indicates that the websocket_session was closed
+    if (ec == websocket::error::closed)
+      return;
 
-            if(ec)
-                return fail(ec, "read");
+    if (ec)
+      return fail(ec, "read");
 
-            // Echo the message
-            derived().ws().text(derived().ws().got_text());
-            derived().ws().async_write(
-                    buffer_.data(),
-                    beast::bind_front_handler(
-                            &websocket_session::on_write,
-                            derived().shared_from_this()));
-        }
+    // Echo the message
+    derived().ws().text(derived().ws().got_text());
+    derived().ws().async_write(
+        buffer_.data(),
+        beast::bind_front_handler(&websocket_session::on_write,
+                                  derived().shared_from_this()));
+  }
 
-        void
-        on_write(
-                beast::error_code ec,
-                std::size_t bytes_transferred)
-        {
-            boost::ignore_unused(bytes_transferred);
+  void on_write(beast::error_code ec, std::size_t bytes_transferred) {
+    boost::ignore_unused(bytes_transferred);
 
-            if(ec)
-                return fail(ec, "write");
+    if (ec)
+      return fail(ec, "write");
 
-            // Clear the buffer
-            buffer_.consume(buffer_.size());
+    // Clear the buffer
+    buffer_.consume(buffer_.size());
 
-            // Do another read
-            do_read();
-        }
+    // Do another read
+    do_read();
+  }
 
-    public:
-        // Start the asynchronous operation
-        template<class Body, class Allocator>
-        void
-        run(beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
-        {
-            // Accept the WebSocket upgrade request
-            do_accept(std::move(req));
-        }
-    };
+public:
+  // Start the asynchronous operation
+  template <class Body, class Allocator>
+  void
+  run(beast::http::request<Body, beast::http::basic_fields<Allocator>> req) {
+    // Accept the WebSocket upgrade request
+    do_accept(std::move(req));
+  }
+};
 
-    //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-    // Handles a plain WebSocket connection
-    class plain_websocket_session
-            : public websocket_session<plain_websocket_session>
-                    , public std::enable_shared_from_this<plain_websocket_session>
-    {
-        websocket::stream<beast::tcp_stream> ws_;
+// Handles a plain WebSocket connection
+class plain_websocket_session
+    : public websocket_session<plain_websocket_session>,
+      public std::enable_shared_from_this<plain_websocket_session> {
+  websocket::stream<beast::tcp_stream> ws_;
 
-    public:
-        // Create the session
-        explicit
-        plain_websocket_session(
-                beast::tcp_stream&& stream)
-                : ws_(std::move(stream))
-        {
-        }
+public:
+  // Create the session
+  explicit plain_websocket_session(beast::tcp_stream &&stream)
+      : ws_(std::move(stream)) {}
 
-        // Called by the base class
-        websocket::stream<beast::tcp_stream>&
-        ws()
-        {
-            return ws_;
-        }
-    };
+  // Called by the base class
+  websocket::stream<beast::tcp_stream> &ws() { return ws_; }
+};
 
-    //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-    // Handles an SSL WebSocket connection
-    class ssl_websocket_session
-            : public websocket_session<ssl_websocket_session>
-                    , public std::enable_shared_from_this<ssl_websocket_session>
-    {
-        websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>> ws_;
+// Handles an SSL WebSocket connection
+class ssl_websocket_session
+    : public websocket_session<ssl_websocket_session>,
+      public std::enable_shared_from_this<ssl_websocket_session> {
+  websocket::stream<beast::ssl_stream<beast::tcp_stream>> ws_;
 
-    public:
-        // Create the ssl_websocket_session
-        explicit
-        ssl_websocket_session(
-                beast::ssl_stream<beast::tcp_stream>&& stream)
-                : ws_(std::move(stream))
-        {
-        }
+public:
+  // Create the ssl_websocket_session
+  explicit ssl_websocket_session(beast::ssl_stream<beast::tcp_stream> &&stream)
+      : ws_(std::move(stream)) {}
 
-        // Called by the base class
-        websocket::stream<
-        beast::ssl_stream<beast::tcp_stream>>&
-        ws()
-        {
-            return ws_;
-        }
-    };
+  // Called by the base class
+  websocket::stream<beast::ssl_stream<beast::tcp_stream>> &ws() { return ws_; }
+};
 
-    //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-    template<class Body, class Allocator>
-    void
-    make_websocket_session(
-            beast::tcp_stream stream,
-            beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
-    {
-        std::make_shared<plain_websocket_session>(
-                std::move(stream))->run(std::move(req));
+template <class Body, class Allocator>
+void make_websocket_session(
+    beast::tcp_stream stream,
+    beast::http::request<Body, beast::http::basic_fields<Allocator>> req) {
+  std::make_shared<plain_websocket_session>(std::move(stream))
+      ->run(std::move(req));
+}
+
+template <class Body, class Allocator>
+void make_websocket_session(
+    beast::ssl_stream<beast::tcp_stream> stream,
+    beast::http::request<Body, beast::http::basic_fields<Allocator>> req) {
+  std::make_shared<ssl_websocket_session>(std::move(stream))
+      ->run(std::move(req));
+}
+
+//------------------------------------------------------------------------------
+typedef beast::http::request_parser<beast::http::string_body> HttpParser;
+
+// Handles an HTTP server connection.
+// This uses the Curiously Recurring Template Pattern so that
+// the same code works with both SSL streams and regular sockets.
+template <class Derived> class http_session {
+private:
+  // Queue needs access to private data to work effectively
+  friend class queue<http_session>;
+
+  // Access the derived class, this is part of
+  // the Curiously Recurring Template Pattern idiom.
+  Derived &derived() { return static_cast<Derived &>(*this); }
+
+  queue<http_session> queue_;
+  const settings &settings_;
+
+  // The parser is stored in an optional container so we can
+  // construct it from scratch it at the beginning of each new message.
+  boost::optional<HttpParser> parser_;
+
+protected:
+  beast::flat_buffer buffer_;
+
+public:
+  // Construct the session
+  http_session(beast::flat_buffer buffer, const settings &s)
+      : queue_(*this), settings_(s), buffer_(std::move(buffer)) {}
+
+  void do_read() {
+    // Construct a new parser for each message
+    parser_.emplace();
+
+    // Apply a reasonable limit to the allowed size
+    // of the body in bytes to prevent abuse.
+    parser_->body_limit(10000);
+
+    // Set the timeout.
+    beast::get_lowest_layer(derived().stream())
+        .expires_after(std::chrono::seconds(30));
+
+    // Read a request using the parser-oriented interface
+    beast::http::async_read(
+        derived().stream(), buffer_, *parser_,
+        beast::bind_front_handler(&http_session::on_read,
+                                  derived().shared_from_this()));
+  }
+
+  void on_read(beast::error_code ec, std::size_t bytes_transferred) {
+    boost::ignore_unused(bytes_transferred);
+
+    // This means they closed the connection
+    if (ec == beast::http::error::end_of_stream)
+      return derived().do_eof();
+
+    if (ec)
+      return fail(ec, "read");
+
+    // See if it is a WebSocket Upgrade
+    if (websocket::is_upgrade(parser_->get())) {
+      // Disable the timeout.
+      // The websocket::stream uses its own timeout settings.
+      beast::get_lowest_layer(derived().stream()).expires_never();
+
+      // Create a websocket session, transferring ownership
+      // of both the socket and the HTTP request.
+      return make_websocket_session(derived().release_stream(),
+                                    parser_->release());
     }
 
-    template<class Body, class Allocator>
-    void
-    make_websocket_session(
-            beast::ssl_stream<beast::tcp_stream> stream,
-            beast::http::request<Body, beast::http::basic_fields<Allocator>> req)
-    {
-        std::make_shared<ssl_websocket_session>(
-                std::move(stream))->run(std::move(req));
+    auto req = parser_->release();
+    handlers::HandlerRegistry<beast::http::string_body, beast::http::fields, queue<http_session> > h(
+        settings_);
+    for (auto handler : h.handlers()) {
+      if (handler->handles(req)) {
+        handler->handle(req, queue_);
+        // Only 1 handler can process a request
+        break;
+      }
     }
 
-    //------------------------------------------------------------------------------
-    typedef beast::http::request_parser<beast::http::string_body> HttpParser;
+    // If we aren't at the queue limit, try to pipeline another request
+    if (!queue_.is_full())
+      do_read();
+  }
 
-    // Handles an HTTP server connection.
-    // This uses the Curiously Recurring Template Pattern so that
-    // the same code works with both SSL streams and regular sockets.
-    template<class Derived>
-    class http_session
-    {
-        // Access the derived class, this is part of
-        // the Curiously Recurring Template Pattern idiom.
-        Derived&
-        derived()
-        {
-            return static_cast<Derived&>(*this);
-        }
+  void on_write(bool close, beast::error_code ec,
+                std::size_t bytes_transferred) {
+    boost::ignore_unused(bytes_transferred);
 
-        // This queue is used for HTTP pipelining.
-        class queue
-        {
-            enum
-            {
-                // Maximum number of responses we will queue
-                limit = 8
-            };
+    if (ec)
+      return fail(ec, "write");
 
-            // The type-erased, saved work item
-            struct work
-            {
-                virtual ~work() = default;
-                virtual void operator()() = 0;
-            };
+    if (close) {
+      // This means we should close the connection, usually because
+      // the response indicated the "Connection: close" semantic.
+      return derived().do_eof();
+    }
 
-            http_session& self_;
-            std::vector<std::unique_ptr<work>> items_;
+    // Inform the queue that a write completed
+    if (queue_.on_write()) {
+      // Read another request
+      do_read();
+    }
+  }
+};
 
-        public:
-            explicit
-            queue(http_session& self)
-                    : self_(self)
-            {
-                static_assert(limit > 0, "queue limit must be positive");
-                items_.reserve(limit);
-            }
+//------------------------------------------------------------------------------
 
-            // Returns `true` if we have reached the queue limit
-            bool
-            is_full() const
-            {
-                return items_.size() >= limit;
-            }
+// Handles a plain HTTP connection
+class plain_http_session
+    : public http_session<plain_http_session>,
+      public std::enable_shared_from_this<plain_http_session> {
+  beast::tcp_stream stream_;
 
-            // Called when a message finishes sending
-            // Returns `true` if the caller should initiate a read
-            bool
-            on_write()
-            {
-                BOOST_ASSERT(! items_.empty());
-                auto const was_full = is_full();
-                items_.erase(items_.begin());
-                if(! items_.empty())
-                    (*items_.front())();
-                return was_full;
-            }
+public:
+  // Create the session
+  plain_http_session(beast::tcp_stream &&stream, beast::flat_buffer &&buffer,
+                     const settings &s)
+      : http_session<plain_http_session>(std::move(buffer), s),
+        stream_(std::move(stream)) {}
 
-            // Called by the HTTP handler to send a response.
-            template<bool isRequest, class Body, class Fields>
-            void
-            operator()(beast::http::message<isRequest, Body, Fields>&& msg)
-            {
-                // This holds a work item
-                struct work_impl : work
-                {
-                    http_session& self_;
-                    beast::http::message<isRequest, Body, Fields> msg_;
+  // Start the session
+  void run() { this->do_read(); }
 
-                    work_impl(
-                            http_session& self,
-                            beast::http::message<isRequest, Body, Fields>&& msg)
-                            : self_(self)
-                            , msg_(std::move(msg))
-                    {
-                    }
+  // Called by the base class
+  beast::tcp_stream &stream() { return stream_; }
 
-                    void
-                    operator()()
-                    {
-                        beast::http::async_write(
-                                self_.derived().stream(),
-                                msg_,
-                                beast::bind_front_handler(
-                                        &http_session::on_write,
-                                        self_.derived().shared_from_this(),
-                                        msg_.need_eof()));
-                    }
-                };
+  // Called by the base class
+  beast::tcp_stream release_stream() { return std::move(stream_); }
 
-                // Allocate and store the work
-                items_.push_back(
-                        boost::make_unique<work_impl>(self_, std::move(msg)));
+  // Called by the base class
+  void do_eof() {
+    // Send a TCP shutdown
+    beast::error_code ec;
+    stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
 
-                // If there was no previous work, start this one
-                if(items_.size() == 1)
-                    (*items_.front())();
-            }
-        };
+    // At this point the connection is closed gracefully
+  }
+};
 
-        queue queue_;
-        const settings& settings_;
+//------------------------------------------------------------------------------
 
-        // The parser is stored in an optional container so we can
-        // construct it from scratch it at the beginning of each new message.
-        boost::optional<HttpParser> parser_;
+// Handles an SSL HTTP connection
+class ssl_http_session : public http_session<ssl_http_session>,
+                         public std::enable_shared_from_this<ssl_http_session> {
+  beast::ssl_stream<beast::tcp_stream> stream_;
 
-    protected:
-        beast::flat_buffer buffer_;
+public:
+  // Create the http_session
+  ssl_http_session(beast::tcp_stream &&stream, ssl::context &ctx,
+                   beast::flat_buffer &&buffer, const settings &s)
+      : http_session<ssl_http_session>(std::move(buffer), s),
+        stream_(std::move(stream), ctx) {}
 
-    public:
-        // Construct the session
-        http_session(
-                beast::flat_buffer buffer,
-                const settings& s) :
-                  queue_(*this)
-                , settings_(s)
-                , buffer_(std::move(buffer))
-        {
-        }
+  // Start the session
+  void run() {
+    // Set the timeout.
+    beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
-        void
-        do_read()
-        {
-            // Construct a new parser for each message
-            parser_.emplace();
+    // Perform the SSL handshake
+    // Note, this is the buffered version of the handshake.
+    stream_.async_handshake(
+        ssl::stream_base::server, buffer_.data(),
+        beast::bind_front_handler(&ssl_http_session::on_handshake,
+                                  shared_from_this()));
+  }
 
-            // Apply a reasonable limit to the allowed size
-            // of the body in bytes to prevent abuse.
-            parser_->body_limit(10000);
+  // Called by the base class
+  beast::ssl_stream<beast::tcp_stream> &stream() { return stream_; }
 
-            // Set the timeout.
-            beast::get_lowest_layer(
-                    derived().stream()).expires_after(std::chrono::seconds(30));
+  // Called by the base class
+  beast::ssl_stream<beast::tcp_stream> release_stream() {
+    return std::move(stream_);
+  }
 
-            // Read a request using the parser-oriented interface
-            beast::http::async_read(
-                    derived().stream(),
-                    buffer_,
-                    *parser_,
-                    beast::bind_front_handler(
-                            &http_session::on_read,
-                            derived().shared_from_this()));
-        }
+  // Called by the base class
+  void do_eof() {
+    // Set the timeout.
+    beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
 
-        void
-        on_read(beast::error_code ec, std::size_t bytes_transferred)
-        {
-            boost::ignore_unused(bytes_transferred);
+    // Perform the SSL shutdown
+    stream_.async_shutdown(beast::bind_front_handler(
+        &ssl_http_session::on_shutdown, shared_from_this()));
+  }
 
-            // This means they closed the connection
-            if(ec == beast::http::error::end_of_stream)
-                return derived().do_eof();
+private:
+  void on_handshake(beast::error_code ec, std::size_t bytes_used) {
+    if (ec)
+      return fail(ec, "handshake");
 
-            if(ec)
-                return fail(ec, "read");
+    // Consume the portion of the buffer used by the handshake
+    buffer_.consume(bytes_used);
 
-            // See if it is a WebSocket Upgrade
-            if(websocket::is_upgrade(parser_->get()))
-            {
-                // Disable the timeout.
-                // The websocket::stream uses its own timeout settings.
-                beast::get_lowest_layer(derived().stream()).expires_never();
+    do_read();
+  }
 
-                // Create a websocket session, transferring ownership
-                // of both the socket and the HTTP request.
-                return make_websocket_session(
-                        derived().release_stream(),
-                        parser_->release());
-            }
+  void on_shutdown(beast::error_code ec) {
+    if (ec)
+      return fail(ec, "shutdown");
 
-            auto req = parser_->release();
-            handlers::HandlerRegistry<beast::http::string_body, beast::http::fields> h(settings_);
-            for(auto handler : h.handlers()) {
-                if(handler->handles(req)) {
-                    handler->template handle<queue>(req, queue_);
-                    // Only 1 handler can process a request
-                    break;
-                } 
-            }
-
-            // If we aren't at the queue limit, try to pipeline another request
-            if(! queue_.is_full())
-                do_read();
-        }
-
-        void
-        on_write(bool close, beast::error_code ec, std::size_t bytes_transferred)
-        {
-            boost::ignore_unused(bytes_transferred);
-
-            if(ec)
-                return fail(ec, "write");
-
-            if(close)
-            {
-                // This means we should close the connection, usually because
-                // the response indicated the "Connection: close" semantic.
-                return derived().do_eof();
-            }
-
-            // Inform the queue that a write completed
-            if(queue_.on_write())
-            {
-                // Read another request
-                do_read();
-            }
-        }
-    };
-
-    //------------------------------------------------------------------------------
-
-    // Handles a plain HTTP connection
-    class plain_http_session
-            : public http_session<plain_http_session>
-                    , public std::enable_shared_from_this<plain_http_session>
-    {
-        beast::tcp_stream stream_;
-
-    public:
-        // Create the session
-        plain_http_session(
-                beast::tcp_stream&& stream,
-                beast::flat_buffer&& buffer,
-                const settings& s)
-                : http_session<plain_http_session>(
-                std::move(buffer),
-                s)
-                , stream_(std::move(stream))
-        {
-        }
-
-        // Start the session
-        void
-        run()
-        {
-            this->do_read();
-        }
-
-        // Called by the base class
-        beast::tcp_stream&
-        stream()
-        {
-            return stream_;
-        }
-
-        // Called by the base class
-        beast::tcp_stream
-        release_stream()
-        {
-            return std::move(stream_);
-        }
-
-        // Called by the base class
-        void
-        do_eof()
-        {
-            // Send a TCP shutdown
-            beast::error_code ec;
-            stream_.socket().shutdown(tcp::socket::shutdown_send, ec);
-
-            // At this point the connection is closed gracefully
-        }
-    };
-
-    //------------------------------------------------------------------------------
-
-    // Handles an SSL HTTP connection
-    class ssl_http_session
-            : public http_session<ssl_http_session>
-                    , public std::enable_shared_from_this<ssl_http_session>
-    {
-        beast::ssl_stream<beast::tcp_stream> stream_;
-
-    public:
-        // Create the http_session
-        ssl_http_session(
-                beast::tcp_stream&& stream,
-                ssl::context& ctx,
-                beast::flat_buffer&& buffer,
-                const settings& s)
-                : http_session<ssl_http_session>(
-                std::move(buffer),
-                s)
-                , stream_(std::move(stream), ctx)
-        {
-        }
-
-        // Start the session
-        void
-        run()
-        {
-            // Set the timeout.
-            beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
-
-            // Perform the SSL handshake
-            // Note, this is the buffered version of the handshake.
-            stream_.async_handshake(
-                    ssl::stream_base::server,
-                    buffer_.data(),
-                    beast::bind_front_handler(
-                            &ssl_http_session::on_handshake,
-                            shared_from_this()));
-        }
-
-        // Called by the base class
-        beast::ssl_stream<beast::tcp_stream>&
-        stream()
-        {
-            return stream_;
-        }
-
-        // Called by the base class
-        beast::ssl_stream<beast::tcp_stream>
-        release_stream()
-        {
-            return std::move(stream_);
-        }
-
-        // Called by the base class
-        void
-        do_eof()
-        {
-            // Set the timeout.
-            beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
-
-            // Perform the SSL shutdown
-            stream_.async_shutdown(
-                    beast::bind_front_handler(
-                            &ssl_http_session::on_shutdown,
-                            shared_from_this()));
-        }
-
-    private:
-        void
-        on_handshake(
-                beast::error_code ec,
-                std::size_t bytes_used)
-        {
-            if(ec)
-                return fail(ec, "handshake");
-
-            // Consume the portion of the buffer used by the handshake
-            buffer_.consume(bytes_used);
-
-            do_read();
-        }
-
-        void
-        on_shutdown(beast::error_code ec)
-        {
-            if(ec)
-                return fail(ec, "shutdown");
-
-            // At this point the connection is closed gracefully
-        }
-    };
+    // At this point the connection is closed gracefully
+  }
+};
 
 } // namespace systemicai::http::server

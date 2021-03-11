@@ -28,7 +28,9 @@
 #include <systemicai/http/server/settings.h>
 #include <systemicai/http/server/handlers.hpp>
 
+#include "boost/beast/http/fields.hpp"
 #include "functions.h"
+#include "systemicai/http/server/handlers/handler.hpp"
 
 namespace systemicai::http::server {
 
@@ -225,6 +227,7 @@ namespace systemicai::http::server {
     }
 
     //------------------------------------------------------------------------------
+    typedef beast::http::request_parser<beast::http::string_body> HttpParser;
 
     // Handles an HTTP server connection.
     // This uses the Curiously Recurring Template Pattern so that
@@ -330,13 +333,12 @@ namespace systemicai::http::server {
             }
         };
 
-        std::shared_ptr<std::string const> doc_root_;
         queue queue_;
         const settings& settings_;
 
         // The parser is stored in an optional container so we can
         // construct it from scratch it at the beginning of each new message.
-        boost::optional<beast::http::request_parser<beast::http::string_body>> parser_;
+        boost::optional<HttpParser> parser_;
 
     protected:
         beast::flat_buffer buffer_;
@@ -345,10 +347,8 @@ namespace systemicai::http::server {
         // Construct the session
         http_session(
                 beast::flat_buffer buffer,
-                std::shared_ptr<std::string const> const& doc_root,
-                const settings& s)
-                : doc_root_(doc_root)
-                , queue_(*this)
+                const settings& s) :
+                  queue_(*this)
                 , settings_(s)
                 , buffer_(std::move(buffer))
         {
@@ -404,8 +404,15 @@ namespace systemicai::http::server {
                         parser_->release());
             }
 
-            // Send the response
-            handlers::handle_request(*doc_root_, parser_->release(), queue_, settings_);
+            auto req = parser_->release();
+            handlers::HandlerRegistry<beast::http::string_body, beast::http::fields> h(settings_);
+            for(auto handler : h.handlers()) {
+                if(handler->handles(req)) {
+                    handler->template handle<queue>(req, queue_);
+                    // Only 1 handler can process a request
+                    break;
+                } 
+            }
 
             // If we aren't at the queue limit, try to pipeline another request
             if(! queue_.is_full())
@@ -450,11 +457,9 @@ namespace systemicai::http::server {
         plain_http_session(
                 beast::tcp_stream&& stream,
                 beast::flat_buffer&& buffer,
-                std::shared_ptr<std::string const> const& doc_root,
                 const settings& s)
                 : http_session<plain_http_session>(
                 std::move(buffer),
-                doc_root,
                 s)
                 , stream_(std::move(stream))
         {
@@ -508,11 +513,9 @@ namespace systemicai::http::server {
                 beast::tcp_stream&& stream,
                 ssl::context& ctx,
                 beast::flat_buffer&& buffer,
-                std::shared_ptr<std::string const> const& doc_root,
                 const settings& s)
                 : http_session<ssl_http_session>(
                 std::move(buffer),
-                doc_root,
                 s)
                 , stream_(std::move(stream), ctx)
         {

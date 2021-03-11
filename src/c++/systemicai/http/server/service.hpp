@@ -36,14 +36,12 @@ class service {
     _ioc = std::make_shared<boost::asio::io_context>(threads);
     auto const address = boost::asio::ip::make_address(settings_.interface_address.data());
     auto const port = settings_.interface_port;
-    auto const doc_root = std::make_shared<string>(settings_.document_root);
 
     // Create and launch a listening port
     std::make_shared<listener>(
         *_ioc,
         _ssl_ctx,
         boost::asio::ip::tcp::endpoint{address, port},
-        doc_root,
         settings_)->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown

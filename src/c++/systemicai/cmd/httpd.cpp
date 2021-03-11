@@ -62,6 +62,16 @@ int main(int argc, char* argv[])
 
   ssl::context ssl_ctx{ssl::context::tlsv12};
   systemicai::common::certificate::load(ssl_ctx, g.ssl_certificate, g.ssl_key, g.ssl_dh);
-  systemicai::http::server::service httpd(g, ssl_ctx);
-  return httpd.start();
+  int status = 0;
+  try{
+    systemicai::http::server::service httpd(g, ssl_ctx);
+    status = httpd.start();
+  } catch(const char* msg) {
+    std::cerr << "Uncaught exception: " << msg << std::endl;
+    status = 1;
+  } catch(const std::exception& e) {
+    std::cerr << "Uncaught exception: " << e.what() << std::endl;
+    status = 2;
+  }
+  return status;
 }

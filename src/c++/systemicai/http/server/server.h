@@ -39,7 +39,7 @@ namespace systemicai::http::server {
     class listener : public std::enable_shared_from_this<listener>
     {
     public:
-        listener( net::io_context& ioc, ssl::context& ctx, tcp::endpoint endpoint, std::shared_ptr<std::string const> const& doc_root, const settings& s);
+        listener( net::io_context& ioc, ssl::context& ctx, tcp::endpoint endpoint, const settings& s);
         void run();
 
     private:
@@ -49,7 +49,6 @@ namespace systemicai::http::server {
         net::io_context& ioc_;
         ssl::context& ctx_;
         tcp::acceptor acceptor_;
-        std::shared_ptr<std::string const> doc_root_;
         const settings settings_;
     };
 

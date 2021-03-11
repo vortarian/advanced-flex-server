@@ -9,104 +9,67 @@ using namespace std;
 
 namespace systemicai::http::server::handlers {
 
-template <class Body, class Allocator, class Send> class handler {
+// Http Request as a templated alias
+template <class Body, class Fields>
+using Request = beast::http::request<Body, Fields>;
+
+template <class Body, class Fields>
+class Handler {
 public:
-  int handle(boost::beast::http::request< Body, boost::beast::http::basic_fields<Allocator> > &req, Send& send) {
-    return 200;
+  Handler(const settings& s) : settings_(s) {
+  }
+
+  virtual ~Handler() {
+  }
+
+  bool handles(Request<Body, Fields> &req) {
+    return true;
+  }
+
+  template<class Send>
+  void handle(const Request<Body, Fields> &req, Send& send) {
+    throw "Not Implemented";
   };
+
+private: 
+  Handler(Handler& ) = delete;
+  Handler(Handler&&) = delete;
+  const Handler& operator=(const Handler&) = delete;
+
+protected:
+  const settings &settings_;
 };
 
-// Http Request as a templated alias
-template <class Body, class Allocator>
-using Request = beast::http::request<Body, beast::http::basic_fields<Allocator>>;
-
-// Handler Function as a templated alias
-// TODO: Not using move sematics here because the functions will execute in a loop
-// Determine if we should switch this to move semantics and add in a handles(...) type of method
-template< class Body, class Allocator, class Send> 
-using HandlerFunction = bool(*)(Request<Body, Allocator>& req, Send& send, const settings&);
+template< class Body, class Fields>
+using HandlerReference = std::shared_ptr< Handler<Body, Fields> >;
 
 // Collection for the handlers
-template< class Body, class Allocator, class Send>
-using HandlerCollection = std::list<HandlerFunction<Body, Allocator, Send> >;
+template< class Body, class Fields>
+using HandlerCollection = std::list<HandlerReference<Body, Fields> >;
 
-// Setup a registry for _compile time_ addition of handlers for the service
-template< class Body, class Allocator, class Send>
-class HandlerRegistry {
+template<class Body, class Fields>
+class default_handle_request : public Handler<Body, Fields> {
 public:
-  HandlerRegistry() {
+  default_handle_request(const settings& s) : Handler<Body, Fields>(s) {
+  } 
+
+  ~default_handle_request() {
   }
 
-  HandlerRegistry(const HandlerRegistry& hr) {
-    std::copy(hr.begin(), hr.end(), this->handlers_.begin());
+  virtual bool handles(const Request<Body, Fields>& req) {
+    // This handles all requests
+    return true;
   }
-
-  HandlerRegistry(HandlerRegistry&& hr) : handlers_(std::move(hr.handlers_)) {
-  }
-
-  void addHandler(HandlerFunction<Body, Allocator, Send>* h) {
-      handlers_.insert(handlers_.end(), h);
-  }
-
-  const HandlerCollection<Body, Allocator, Send> handlers() const {
-      return handlers_;
-  }
-private:
-  HandlerCollection<Body, Allocator, Send> handlers_;
-};
-
-template< class Body, class Allocator, class Send>
-class GlobalHandlerRegistry : public HandlerRegistry< Body, Allocator, Send>
-{
-public:
-  /**
-   * Provide access to a global registry
-   */
-  static GlobalHandlerRegistry& global() {
-     static GlobalHandlerRegistry<Body, Allocator, Send> registry;
-     return registry;
-  }
-
-  /**
-   * Provide a means of getting a copy of the handlers since we are blocking all use of constructors & operators
-   */
-  HandlerRegistry<Body, Allocator, Send>&& toHandlerRegistry() {
-    HandlerRegistry<Body, Allocator, Send> hr;
-    std::copy(this->begin(), this->end(), hr.handlers_.begin());
-    return hr;
-  }
-
-private:
-  GlobalHandlerRegistry() { ; }
-
-  // Prevent Move Semantics and construction
-  GlobalHandlerRegistry(GlobalHandlerRegistry&&) = delete;
-  GlobalHandlerRegistry(GlobalHandlerRegistry&) = delete;
-  GlobalHandlerRegistry& operator=(const GlobalHandlerRegistry<Body, Allocator, Send>&) = delete;
-};
-
-static HandlerRegistry< class Body, class Allocator, class Send> Registry;
-
-// This function produces an HTTP response for the given
-// request. The type of the response object depends on the
-// contents of the request, so the interface requires the
-// caller to pass a generic lambda for receiving the response.
-template<
-        class Body, class Allocator,
-        class Send>
-void
-default_handle_request(
-        beast::string_view doc_root,
-        beast::http::request<Body, beast::http::basic_fields<Allocator>>&& req,
-        Send&& send,
-        const settings& s)
-{
+  
+  template<class Send>
+  void handle(const Request<Body, Fields>& req, Send& send)
+  {
     // Returns a bad request response
     auto const bad_request =
-            [&req, &s](beast::string_view why)
+            [&req, this](beast::string_view why)
             {
                 beast::http::response<beast::http::string_body> res{beast::http::status::bad_request, req.version()};
-                res.set(beast::http::field::server, s.service_version);
+                res.set(beast::http::field::server, this->settings_.service_version);
                 res.set(beast::http::field::content_type, "text/html");
                 res.keep_alive(req.keep_alive());
                 res.body() = std::string(why);
@@ -116,10 +79,10 @@ default_handle_request(
 
     // Returns a not found response
     auto const not_found =
-            [&req, &s](beast::string_view target)
+            [&req, this](beast::string_view target)
             {
                 beast::http::response<beast::http::string_body> res{beast::http::status::not_found, req.version()};
-                res.set(beast::http::field::server, s.service_version);
+                res.set(beast::http::field::server, this->settings_.service_version);
                 res.set(beast::http::field::content_type, "text/html");
                 res.keep_alive(req.keep_alive());
                 res.body() = "The resource '" + std::string(target) + "' was not found.";
@@ -129,10 +92,10 @@ default_handle_request(
 
     // Returns a server error response
     auto const server_error =
-            [&req, &s](beast::string_view what)
+            [&req, this](beast::string_view what)
             {
                 beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, req.version()};
-                res.set(beast::http::field::server, s.service_version);
+                res.set(beast::http::field::server, this->settings_.service_version);
                 res.set(beast::http::field::content_type, "text/html");
                 res.keep_alive(req.keep_alive());
                 res.body() = "An error occurred: '" + std::string(what) + "'";
@@ -152,7 +115,7 @@ default_handle_request(
         return send(bad_request("Illegal request-target"));
 
     // Build the path to the requested file
-    std::string path = path_cat(doc_root, req.target());
+    std::string path = path_cat(this->settings_.document_root, req.target());
     if(req.target().back() == '/')
         path.append("index.html");
 
@@ -176,7 +139,7 @@ default_handle_request(
     if(req.method() == beast::http::verb::head)
     {
         beast::http::response<beast::http::empty_body> res{beast::http::status::ok, req.version()};
-        res.set(beast::http::field::server, s.service_version);
+        res.set(beast::http::field::server, this->settings_.service_version);
         res.set(beast::http::field::content_type, mime_type(path));
         res.content_length(size);
         res.keep_alive(req.keep_alive());
@@ -188,39 +151,39 @@ default_handle_request(
             std::piecewise_construct,
             std::make_tuple(std::move(body)),
             std::make_tuple(beast::http::status::ok, req.version())};
-    res.set(beast::http::field::server, s.service_version);
+    res.set(beast::http::field::server, this->settings_.service_version);
     res.set(beast::http::field::content_type, mime_type(path));
     res.content_length(size);
     res.keep_alive(req.keep_alive());
     return send(std::move(res));
-}
-
-// This handler allows override of the default handlers by overriding the assigned handler.
-// If no handlers are registered with the GlobalHandlerRegistry then it will call default_handle_request
-template<
-        class Body, class Allocator,
-        class Send>
-void
-handle_request(
-        beast::string_view doc_root,
-        beast::http::request<Body, beast::http::basic_fields<Allocator>>&& req,
-        Send&& send,
-        const settings& s)
-{
-  auto gHandlers = GlobalHandlerRegistry<Body, Allocator, Send>::global().handlers();
-  if(gHandlers.empty()) {
-    bool handled = false;
-    for(auto handler : gHandlers) {
-        handled = handler(req, send, s);
-        if(handled) break;
-    }
-    if(!handled) {
-      default_handle_request(s.document_root, std::move(req), std::move(send), s);
-    }
-  } else {
-      default_handle_request(s.document_root, std::move(req), std::move(send), s);
   }
-}
+};
+
+
+template< class Body, class Fields>
+class HandlerRegistry {
+public:
+  HandlerRegistry(const settings& s) {
+    addHandler(std::make_shared< default_handle_request<Body, Fields> >(s));
+  }
+
+  HandlerRegistry(const HandlerRegistry& hr) {
+    std::copy(hr.begin(), hr.end(), this->handlers_.begin());
+  }
+
+  HandlerRegistry(HandlerRegistry&& hr) : handlers_(std::move(hr.handlers_)) {
+  }
+
+  void addHandler(HandlerReference<Body, Fields> h) {
+      handlers_.insert(handlers_.end(), h);
+  }
+
+  const HandlerCollection<Body, Fields> handlers() const {
+      return handlers_;
+  }
+private:
+  HandlerCollection<Body, Fields> handlers_;
+};
 
 } // namespace systemicai::http::server::handler
 

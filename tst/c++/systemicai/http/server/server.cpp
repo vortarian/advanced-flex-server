@@ -93,7 +93,6 @@ int main(int argc, char* argv[])
 
     auto const address = net::ip::make_address(g.interface_address.data());
     auto const port = g.interface_port;
-    auto const doc_root = std::make_shared<string>(g.document_root);
     auto const threads = std::max<int>(1, g.thread_io);
 
     // The io_context is required for all I/O
@@ -107,10 +106,10 @@ int main(int argc, char* argv[])
 
     // Create and launch a listening port
     std::make_shared<listener>(
-            ioc,
-            ctx,
-            tcp::endpoint{address, port},
-            doc_root)->run();
+      ioc,
+      ctx,
+      tcp::endpoint{address, port}
+    )->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     net::signal_set signals(ioc, SIGINT, SIGTERM);

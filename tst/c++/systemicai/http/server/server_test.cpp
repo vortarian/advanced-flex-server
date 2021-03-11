@@ -124,3 +124,46 @@
 
     std::cout << "This test doesn't actually do anything yet - STUB only atm";
   }
+
+  // The test case must be registered with the test runner
+  BOOST_AUTO_TEST_CASE( test_systemicai_default_handler )
+  {
+    boost::log::core::get()->set_filter( boost::log::trivial::severity >= boost::log::trivial::trace );
+
+    std::stringstream s_json(test::systemicai::http::server::settings::json);
+    pt::ptree tree;
+    pt::json_parser::read_json(s_json, tree);
+    systemicai::http::server::settings settings(tree);
+    ssl::context ssl_ctx{ssl::context::tlsv12};
+    std::istringstream idsc(dummy_ssl_certificate);
+    std::istringstream idsk(dummy_ssl_key);
+    std::istringstream idsd(dummy_ssl_dh);
+    systemicai::common::certificate::load(
+      ssl_ctx,
+      idsc,
+      idsk,
+      idsd
+    );
+    systemicai::http::server::service service(settings, ssl_ctx);
+
+    std::timed_mutex tms;
+    BOOST_TEST(service.running() == false);
+    std::thread t(run_service, std::ref(service), std::ref(tms));
+
+    // Give the service 1 second to start
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    BOOST_TEST(service.running() == true);
+    service.stop();
+
+    // Try to acquire the lock for 3 seconds - giving the service 3 seconds to stop
+    if(tms.try_lock_for(std::chrono::seconds(3))) {
+      // If we acquire the lock, unlock it
+      tms.unlock();
+    }
+    t.join();
+
+    // We should be in a stopped state by now
+    BOOST_TEST(service.running() == false);
+
+    std::cout << "This test doesn't actually do anything yet - STUB only atm";
+  }

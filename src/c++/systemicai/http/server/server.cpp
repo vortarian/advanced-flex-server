@@ -39,7 +39,6 @@ namespace systemicai::http::server {
     {
         beast::tcp_stream stream_;
         ssl::context& ctx_;
-        std::shared_ptr<std::string const> doc_root_;
         beast::flat_buffer buffer_;
         settings settings_;
 
@@ -48,11 +47,9 @@ namespace systemicai::http::server {
         detect_session(
                 tcp::socket&& socket,
                 ssl::context& ctx,
-                std::shared_ptr<std::string const> const& doc_root,
                 const settings& s)
                 : stream_(std::move(socket))
                 , ctx_(ctx)
-                , doc_root_(doc_root)
                 , settings_(s)
         {
         }
@@ -99,7 +96,6 @@ namespace systemicai::http::server {
                         std::move(stream_),
                         ctx_,
                         std::move(buffer_),
-                        doc_root_,
                         settings_)->run();
                 return;
             }
@@ -108,7 +104,6 @@ namespace systemicai::http::server {
             std::make_shared<plain_http_session>(
                     std::move(stream_),
                     std::move(buffer_),
-                    doc_root_,
                     settings_)->run();
         }
     };
@@ -117,13 +112,11 @@ namespace systemicai::http::server {
             net::io_context& ioc,
             ssl::context& ctx,
             tcp::endpoint endpoint,
-            std::shared_ptr<std::string const> const& doc_root,
             const settings& s)
             : std::enable_shared_from_this<listener>()
             , ioc_(ioc)
             , ctx_(ctx)
             , acceptor_(net::make_strand(ioc))
-            , doc_root_(doc_root)
             , settings_(s)
             
     {
@@ -191,7 +184,6 @@ namespace systemicai::http::server {
             std::make_shared<detect_session>(
                     std::move(socket),
                     ctx_,
-                    doc_root_,
                     settings_)->run();
         }
 

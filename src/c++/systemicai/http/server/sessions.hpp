@@ -247,14 +247,16 @@ public:
     }
 
     auto req = parser_->release();
-    handlers::HandlerRegistry<beast::http::string_body, beast::http::fields, queue<http_session> > h(
-        settings_);
-    for (auto handler : h.handlers()) {
+    handlers::HandlerRegistry< handlers::Request<beast::http::string_body, beast::http::fields>, queue<http_session> > h(settings_);
+    bool handled = false;
+    for (auto handler : h.handlers()) 
       if (handler->handles(req)) {
+        handled = true;
         handler->handle(req, queue_);
-        // Only 1 handler can process a request
-        break;
       }
+    if(!handled) {
+      const static handlers::bad_request< handlers::Request<beast::http::string_body, beast::http::fields>, queue<http_session> > bad(settings_);
+      bad.handle(req, queue_);
     }
 
     // If we aren't at the queue limit, try to pipeline another request

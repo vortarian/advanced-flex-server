@@ -6,11 +6,16 @@
 
 namespace systemicai::http::server::handlers {
 
-template< class Body, class Fields, class Send>
+template< class Request, class Send >
 class HandlerRegistry {
 public:
+  typedef std::shared_ptr< Handler<Request, Send> > HandlerReference;
+  typedef std::list<HandlerReference> HandlerCollection;
+
   HandlerRegistry(const settings& s) {
-    addHandler(std::make_shared< default_handle_request<Body, Fields, Send> >(s));
+    // Setup these handlers by default
+    addHandler(std::make_shared< default_handle_request<Request, Send> >(s));
+    addHandler(std::make_shared< live_request<Request, Send> >(s));
   }
 
   HandlerRegistry(const HandlerRegistry& hr) {
@@ -20,15 +25,18 @@ public:
   HandlerRegistry(HandlerRegistry&& hr) : handlers_(std::move(hr.handlers_)) {
   }
 
-  void addHandler(HandlerReference<Body, Fields, Send> h) {
-      handlers_.insert(handlers_.end(), h);
+  /**
+    Pushes a handler onto the list of handlers in the registry
+   */
+  void addHandler(HandlerReference h) {
+      handlers_.push_front(h);
   }
 
-  const HandlerCollection<Body, Fields, Send> handlers() const {
+  const HandlerCollection& handlers() const {
       return handlers_;
   }
 private:
-  HandlerCollection<Body, Fields, Send> handlers_;
+  HandlerCollection handlers_;
 };
 
 }

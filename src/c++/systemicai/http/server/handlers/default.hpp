@@ -8,64 +8,64 @@
 
 namespace systemicai::http::server::handlers {
 
-template <class Body, class Fields, class Send>
-class bad_request : public Handler<Body, Fields, Send> {
+template <class Request, class Send>
+class bad_request : public Handler<Request, Send> {
 public:
-  bad_request() : Handler<Body, Fields, Send>() { ; }
-  bool handles(const Request<Body, Fields> &req) {
+  bad_request(const settings& s) : Handler<Request, Send>(s) { ; }
+  virtual bool handles(const Request &req) const {
     return true;
   };
 
-  int handle(const Request<Body, Fields> &req, Send &send) {
+  virtual void handle(const Request &req, Send &send) const {
     beast::http::response<beast::http::string_body> res{beast::http::status::bad_request, req.version()};
     res.set(beast::http::field::server, this->settings_.service_version);
     res.set(beast::http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
     res.body() = std::string("Bad Request");
     res.prepare_payload();
-    return Send(res);
+    send(std::move(res));
   };
 };
 
-template <class Body, class Fields, class Send>
-class live_request : public Handler<Body, Fields, Send> {
+template <class Request, class Send>
+class live_request : public Handler<Request, Send> {
 public:
-  live_request() : Handler<Body, Fields, Send>() { ; }
+  live_request(const settings& s) : Handler<Request, Send>(s) { ; }
 
-  bool handles(const Request<Body, Fields> &req) {
-    if(req.method == boost::beast::http::verb::get && req.target == "/live") {
+  virtual bool handles(const Request &req) const {
+    if(req.method() == boost::beast::http::verb::get && req.target() == "/live") {
       return true;
     } else {
       return false;
     }
   };
 
-  void handle(const Request<Body, Fields> &req, Send &send) {
+  virtual void handle(const Request &req, Send &send) const {
     beast::http::response<beast::http::string_body> res{beast::http::status::ok, req.version()};
     res.set(beast::http::field::server, this->settings_.service_version);
     res.set(beast::http::field::content_type, "text/html");
     res.keep_alive(req.keep_alive());
     res.body() = "Alive";
     res.prepare_payload();
-    return Send(res);
+    send(std::move(res));
   };
 };
 
 // TODO: This default handler needs to be refactored for a real world example
 // This was carried over from an example of boost::beast
-template <class Body, class Fields, class Send>
-class default_handle_request : public Handler<Body, Fields, Send> {
+template <class Request, class Send>
+class default_handle_request : public Handler<Request, Send> {
 public:
-  default_handle_request(const settings &s) : Handler<Body, Fields, Send>(s) {}
+  default_handle_request(const settings &s) : Handler<Request, Send>(s) {}
 
   ~default_handle_request() {}
 
-  virtual bool handles(const Request<Body, Fields> &req) {
+  virtual bool handles(const Request &req) const {
     // This handles all requests
     return true;
   }
 
-  void handle(const Request<Body, Fields> &req, Send &send) {
+  virtual void handle(const Request &req, Send &send) const {
     // Returns a bad request response
     auto const bad_request = [&req, this](beast::string_view why) {
       beast::http::response<beast::http::string_body> res{

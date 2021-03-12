@@ -1,6 +1,7 @@
 #ifndef SYSTEMICAI_HTTP_SERVER_HANDLERS_HANDLER_HPP
 #define SYSTEMICAI_HTTP_SERVER_HANDLERS_HANDLER_HPP
 
+#include <stdexcept>
 #include <systemicai/http/server/namespace.h>
 #include <systemicai/http/server/settings.h>
 #include <systemicai/http/server/functions.h>
@@ -14,7 +15,8 @@ namespace systemicai::http::server::handlers {
 template <class Body, class Fields>
 using Request = beast::http::request<Body, Fields>;
 
-template <class Body, class Fields, class Send>
+// Base class for the handlers (polymorphism is required for the registry)
+template <class Request, class Send>
 class Handler {
 public:
   Handler(const settings& s) : settings_(s) {
@@ -23,13 +25,8 @@ public:
   virtual ~Handler() {
   }
 
-  bool handles(Request<Body, Fields> &req) {
-    return true;
-  }
-
-  virtual void handle(const Request<Body, Fields> &req, Send& send) {
-    throw "Not Implemented";
-  };
+  virtual bool handles(const Request &req) const = 0;
+  virtual void handle(const Request &req, Send& send) const = 0;
 
 private: 
   Handler(Handler& ) = delete;
@@ -39,13 +36,6 @@ private:
 protected:
   const settings &settings_;
 };
-
-template< class Body, class Fields, class Send>
-using HandlerReference = std::shared_ptr< Handler<Body, Fields, Send> >;
-
-// Collection for the handlers
-template< class Body, class Fields, class Send>
-using HandlerCollection = std::list<HandlerReference<Body, Fields, Send> >;
 
 } // namespace systemicai::http::server::handler
 

@@ -42,7 +42,7 @@ if (CMAKE_CXX_CPPCHECK)
       #"--inline-suppr"
       "--suppressions-list=${CMAKE_SOURCE_DIR}/.cppCheck.suppressions"
       #"--suppress=missingIncludeSystem"
-      "-I ${CONAN_INCLUDE_DIRS}"
+      #"-I ${CONAN_INCLUDE_DIRS}"
   )
 endif()
 

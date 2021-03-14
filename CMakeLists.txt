@@ -78,12 +78,21 @@ target_link_libraries(client ${STANDARD_LIBRARIES})
 
 add_executable(${PROJECT_NAME}
    src/c++/systemicai/cmd/httpd.cpp
+   src/c++/systemicai/http/server/functions.h
    src/c++/systemicai/http/server/functions.cpp
-   src/c++/systemicai/http/server/server.cpp
    src/c++/systemicai/http/server/handlers.hpp
+   src/c++/systemicai/http/server/handlers/default.hpp
+   src/c++/systemicai/http/server/handlers/handler.hpp
+   src/c++/systemicai/http/server/handlers/registry.hpp
+   src/c++/systemicai/http/server/namespace.h
+   src/c++/systemicai/http/server/queue.hpp
+   src/c++/systemicai/http/server/server.cpp
+   src/c++/systemicai/http/server/server.h
+   src/c++/systemicai/http/server/service.hpp
+   src/c++/systemicai/http/server/sessions.hpp
    src/c++/systemicai/common/certificate.h
    src/c++/systemicai/http/server/settings.h
-   src/c++/systemicai/http/server/server.h)
+)
 target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
 add_executable(unit-tests

@@ -32,6 +32,7 @@
 #include <systemicai/http/server/handlers.hpp>
 
 #include "functions.h"
+#include "sessions.hpp"
 
 namespace systemicai::http::server {
 
@@ -50,6 +51,8 @@ namespace systemicai::http::server {
         ssl::context& ctx_;
         tcp::acceptor acceptor_;
         const settings settings_;
+        ssl_http_session::type_handler_registry registry_handler_ssl;
+        plain_http_session::type_handler_registry registry_handler_plain;
     };
 
 } // namespace systemicai::http::server

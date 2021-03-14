@@ -1,3 +1,5 @@
+#ifndef SYSTEMICAI_HTTP_SERVER_SESSIONS_HPP
+#define SYSTEMICAI_HTTP_SERVER_SESSIONS_HPP
 
 //
 // Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
@@ -31,7 +33,9 @@
 
 #include "boost/beast/http/fields.hpp"
 #include "functions.h"
+#include "systemicai/http/server/handlers/default.hpp"
 #include "systemicai/http/server/handlers/handler.hpp"
+#include "systemicai/http/server/handlers/registry.hpp"
 
 namespace systemicai::http::server {
 
@@ -182,6 +186,9 @@ typedef beast::http::request_parser<beast::http::string_body> HttpParser;
 // This uses the Curiously Recurring Template Pattern so that
 // the same code works with both SSL streams and regular sockets.
 template <class Derived> class http_session {
+public:
+  typedef handlers::HandlerRegistry< beast::http::fields, queue<http_session> > type_handler_registry;
+
 private:
   // Queue needs access to private data to work effectively
   friend class queue<http_session>;
@@ -197,13 +204,17 @@ private:
   // construct it from scratch it at the beginning of each new message.
   boost::optional<HttpParser> parser_;
 
+  // Dynamically provided handlers
+  const type_handler_registry &handlers_;
+
 protected:
   beast::flat_buffer buffer_;
 
 public:
   // Construct the session
-  http_session(beast::flat_buffer buffer, const settings &s)
-      : queue_(*this), settings_(s), buffer_(std::move(buffer)) {}
+  http_session(beast::flat_buffer buffer, const settings &s, const type_handler_registry& h)
+      : queue_(*this), settings_(s), handlers_(h), buffer_(std::move(buffer)) {
+      }
 
   void do_read() {
     // Construct a new parser for each message
@@ -247,16 +258,16 @@ public:
     }
 
     auto req = parser_->release();
-    handlers::HandlerRegistry< handlers::Request<beast::http::string_body, beast::http::fields>, queue<http_session> > h(settings_);
     bool handled = false;
-    for (auto handler : h.handlers()) 
+    for (auto handler : handlers_.handlers()) 
       if (handler->handles(req)) {
         handled = true;
         handler->handle(req, queue_);
+        break;
       }
     if(!handled) {
-      const static handlers::bad_request< handlers::Request<beast::http::string_body, beast::http::fields>, queue<http_session> > bad(settings_);
-      bad.handle(req, queue_);
+      const static handlers::internal_server_error< beast::http::fields, queue<http_session> > ise(settings_);
+      ise.handle(req, queue_);
     }
 
     // If we aren't at the queue limit, try to pipeline another request
@@ -295,9 +306,13 @@ class plain_http_session
 
 public:
   // Create the session
-  plain_http_session(beast::tcp_stream &&stream, beast::flat_buffer &&buffer,
-                     const settings &s)
-      : http_session<plain_http_session>(std::move(buffer), s),
+  plain_http_session(
+    beast::tcp_stream &&stream,
+    beast::flat_buffer &&buffer,
+    const settings &s,
+    const http_session<plain_http_session>::type_handler_registry& h
+    )
+      : http_session<plain_http_session>(std::move(buffer), s, h),
         stream_(std::move(stream)) {}
 
   // Start the session
@@ -328,9 +343,14 @@ class ssl_http_session : public http_session<ssl_http_session>,
 
 public:
   // Create the http_session
-  ssl_http_session(beast::tcp_stream &&stream, ssl::context &ctx,
-                   beast::flat_buffer &&buffer, const settings &s)
-      : http_session<ssl_http_session>(std::move(buffer), s),
+  ssl_http_session(
+        beast::tcp_stream &&stream
+      , ssl::context &ctx
+      , beast::flat_buffer &&buffer
+      , const settings &s
+      , const http_session<ssl_http_session>::type_handler_registry& h
+    )
+      : http_session<ssl_http_session>(std::move(buffer), s, h),
         stream_(std::move(stream), ctx) {}
 
   // Start the session
@@ -384,3 +404,5 @@ private:
 };
 
 } // namespace systemicai::http::server
+
+#endif // SYSTEMICAI_HTTP_SERVER_SESSIONS_HPP

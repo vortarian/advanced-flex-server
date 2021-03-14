@@ -29,7 +29,6 @@
 
 #include "functions.h"
 #include "server.h"
-#include "sessions.hpp"
 
 namespace systemicai::http::server {
     //------------------------------------------------------------------------------
@@ -41,16 +40,23 @@ namespace systemicai::http::server {
         ssl::context& ctx_;
         beast::flat_buffer buffer_;
         settings settings_;
+        const ssl_http_session::type_handler_registry& registry_handler_ssl;
+        const plain_http_session::type_handler_registry& registry_handler_plain;
 
     public:
         explicit
         detect_session(
                 tcp::socket&& socket,
                 ssl::context& ctx,
-                const settings& s)
+                const settings& s,
+                const ssl_http_session::type_handler_registry& hr_ssl,
+                const plain_http_session::type_handler_registry& hr_plain
+                )
                 : stream_(std::move(socket))
                 , ctx_(ctx)
                 , settings_(s)
+                , registry_handler_ssl(hr_ssl)
+                , registry_handler_plain(hr_plain)
         {
         }
 
@@ -96,7 +102,8 @@ namespace systemicai::http::server {
                         std::move(stream_),
                         ctx_,
                         std::move(buffer_),
-                        settings_)->run();
+                        settings_,
+                        registry_handler_ssl)->run();
                 return;
             }
 
@@ -104,7 +111,8 @@ namespace systemicai::http::server {
             std::make_shared<plain_http_session>(
                     std::move(stream_),
                     std::move(buffer_),
-                    settings_)->run();
+                    settings_,
+                    registry_handler_plain)->run();
         }
     };
 
@@ -112,12 +120,15 @@ namespace systemicai::http::server {
             net::io_context& ioc,
             ssl::context& ctx,
             tcp::endpoint endpoint,
-            const settings& s)
+            const settings& s
+            )
             : std::enable_shared_from_this<listener>()
             , ioc_(ioc)
             , ctx_(ctx)
             , acceptor_(net::make_strand(ioc))
             , settings_(s)
+            , registry_handler_ssl(s)
+            , registry_handler_plain(s)
             
     {
         beast::error_code ec;
@@ -184,7 +195,10 @@ namespace systemicai::http::server {
             std::make_shared<detect_session>(
                     std::move(socket),
                     ctx_,
-                    settings_)->run();
+                    settings_,
+                    registry_handler_ssl,
+                    registry_handler_plain
+                )->run();
         }
 
         // Accept another connection

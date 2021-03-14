@@ -17,7 +17,6 @@ public:
     // Setup these handlers by default
     addHandler(std::make_shared< default_handle_request<Fields, Send> >(s));
     addHandler(std::make_shared< live_request<Fields, Send> >(s));
-    std::cerr << "HandlerRegistry::HandlerRegistry:  " << long(this)  << std::endl;
   }
 
   HandlerRegistry(const HandlerRegistry& hr) {

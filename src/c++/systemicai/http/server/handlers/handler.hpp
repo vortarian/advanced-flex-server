@@ -18,22 +18,20 @@ namespace systemicai::http::server::handlers {
 template <class Fields, class Send>
 class Handler {
 public:
-  Handler(const settings& s) : settings_(s) {
+  Handler() {
   }
 
   virtual ~Handler() {
   }
 
-  virtual bool handles(const beast::http::header<true, Fields> &req) const = 0;
-  virtual void handle(const beast::http::header<true, Fields> &req, Send& send) const = 0;
+  virtual bool handles(const beast::http::request_header<Fields> &req, const settings& s) const = 0;
+  virtual void handle(const beast::http::request_header<Fields> &req, Send& send, const settings& s) const = 0;
 
 private: 
   Handler(Handler& ) = delete;
   Handler(Handler&&) = delete;
   const Handler& operator=(const Handler&) = delete;
 
-protected:
-  const settings &settings_;
 };
 
 } // namespace systemicai::http::server::handler

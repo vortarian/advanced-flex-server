@@ -13,15 +13,15 @@ namespace systemicai::http::server::handlers {
 template <class Fields, class Send>
 class bad_request : public Handler<Fields, Send> {
 public:
-  bad_request(const settings& s) : Handler<Fields, Send>(s) { ; }
-  virtual bool handles(const beast::http::header<true, Fields> &req) const {
+  bad_request() : Handler<Fields, Send>() { ; }
+  virtual bool handles(const beast::http::request_header<Fields> &req, const settings& s) const {
     return true;
   };
 
-  virtual void handle(const beast::http::header<true, Fields> &req, Send &send) const {
+  virtual void handle(const beast::http::request_header<Fields> &req, Send &send, const settings& s) const {
     beast::http::message<true, beast::http::string_body, Fields> req_(req);
     beast::http::response<beast::http::string_body> res{beast::http::status::bad_request, req.version()};
-    res.set(beast::http::field::server, this->settings_.service_version);
+    res.set(beast::http::field::server, s.service_version);
     res.set(beast::http::field::content_type, "text/html");
     res.keep_alive(req_.keep_alive());
     res.body() = std::string("Bad Request");
@@ -33,18 +33,18 @@ public:
 template <class Fields, class Send>
 class internal_server_error : public Handler<Fields, Send> {
 public:
-  internal_server_error(const settings& s) : Handler<Fields, Send>(s) { ; }
-  virtual bool handles(const beast::http::header<true, Fields> &req) const {
+  internal_server_error() : Handler<Fields, Send>() { ; }
+  virtual bool handles(const beast::http::request_header<Fields> &req, const settings& s) const {
     return true;
   };
 
   /**
    * This is mostly thrown when the server is miss-configured, lacks any handlers for a session or all handlers return false on handles()
    */
-  virtual void handle(const beast::http::header<true, Fields> &req, Send &send) const {
+  virtual void handle(const beast::http::request_header<Fields> &req, Send &send, const settings& s) const {
     beast::http::message<true, beast::http::string_body, Fields> req_(req);
     beast::http::response<beast::http::string_body> res{beast::http::status::internal_server_error, req.version()};
-    res.set(beast::http::field::server, this->settings_.service_version);
+    res.set(beast::http::field::server, s.service_version);
     res.set(beast::http::field::content_type, "text/html");
     res.keep_alive(req_.keep_alive());
     res.body() = std::string("Internal Server Error");
@@ -56,9 +56,9 @@ public:
 template <class Fields, class Send>
 class live_request : public Handler<Fields, Send> {
 public:
-  live_request(const settings& s) : Handler<Fields, Send>(s) { ; }
+  live_request() : Handler<Fields, Send>() { ; }
 
-  virtual bool handles(const beast::http::header<true, Fields> &req) const {
+  virtual bool handles(const beast::http::request_header<Fields> &req, const settings& s) const {
     if(req.method() == boost::beast::http::verb::get && req.target() == "/live") {
       return true;
     } else {
@@ -66,12 +66,12 @@ public:
     }
   };
 
-  virtual void handle(const beast::http::header<true, Fields> &req, Send &send) const {
+  virtual void handle(const beast::http::request_header<Fields> &req, Send &send, const settings& s) const {
     // TODO: Not all together sure that constructing a new message here is the right approach
     // The queue does use a parser, perhaps we could RTTI to determin if we already have a parsed message?
     beast::http::message<true, beast::http::string_body, Fields> req_(req);
     beast::http::response<beast::http::string_body> res{beast::http::status::ok, req.version()};
-    res.set(beast::http::field::server, this->settings_.service_version);
+    res.set(beast::http::field::server, s.service_version);
     res.set(beast::http::field::content_type, "text/html");
     res.keep_alive(req_.keep_alive());
     res.body() = "Alive";
@@ -85,22 +85,22 @@ public:
 template <class Fields, class Send>
 class default_handle_request : public Handler<Fields, Send> {
 public:
-  default_handle_request(const settings &s) : Handler<Fields, Send>(s) {}
+  default_handle_request() : Handler<Fields, Send>() {}
 
   ~default_handle_request() {}
 
-  virtual bool handles(const beast::http::header<true, Fields> &req) const {
+  virtual bool handles(const beast::http::request_header<Fields> &req, const settings& s) const {
     // This handles all requests
     return true;
   }
 
-  virtual void handle(const beast::http::header<true, Fields> &req, Send &send) const {
+  virtual void handle(const beast::http::request_header<Fields> &req, Send &send, const settings& s) const {
     beast::http::message<true, beast::http::string_body, Fields> req_(req);
     // Returns a bad request response
-    auto const bad_request = [&req_, this](beast::string_view why) {
+    auto const bad_request = [&req_, &s](beast::string_view why) {
       beast::http::response<beast::http::string_body> res{
           beast::http::status::bad_request, req_.version()};
-      res.set(beast::http::field::server, this->settings_.service_version);
+      res.set(beast::http::field::server, s.service_version);
       res.set(beast::http::field::content_type, "text/html");
       res.keep_alive(req_.keep_alive());
       res.body() = std::string(why);
@@ -109,10 +109,10 @@ public:
     };
 
     // Returns a not found response
-    auto const not_found = [&req_, this](beast::string_view target) {
+    auto const not_found = [&req_, &s](beast::string_view target) {
       beast::http::response<beast::http::string_body> res{
           beast::http::status::not_found, req_.version()};
-      res.set(beast::http::field::server, this->settings_.service_version);
+      res.set(beast::http::field::server, s.service_version);
       res.set(beast::http::field::content_type, "text/html");
       res.keep_alive(req_.keep_alive());
       res.body() = "The resource '" + std::string(target) + "' was not found.";
@@ -121,10 +121,10 @@ public:
     };
 
     // Returns a server error response
-    auto const server_error = [&req_, this](beast::string_view what) {
+    auto const server_error = [&req_, &s](beast::string_view what) {
       beast::http::response<beast::http::string_body> res{
           beast::http::status::internal_server_error, req_.version()};
-      res.set(beast::http::field::server, this->settings_.service_version);
+      res.set(beast::http::field::server, s.service_version);
       res.set(beast::http::field::content_type, "text/html");
       res.keep_alive(req_.keep_alive());
       res.body() = "An error occurred: '" + std::string(what) + "'";
@@ -143,7 +143,7 @@ public:
       return send(bad_request("Illegal request-target"));
 
     // Build the path to the requested file
-    std::string path = path_cat(this->settings_.document_root, req_.target());
+    std::string path = path_cat(s.document_root, req_.target());
     if (req_.target().back() == '/')
       path.append("index.html");
 
@@ -167,7 +167,7 @@ public:
     if (req_.method() == beast::http::verb::head) {
       beast::http::response<beast::http::empty_body> res{
           beast::http::status::ok, req_.version()};
-      res.set(beast::http::field::server, this->settings_.service_version);
+      res.set(beast::http::field::server, s.service_version);
       res.set(beast::http::field::content_type, mime_type(path));
       res.content_length(size);
       res.keep_alive(req_.keep_alive());
@@ -178,7 +178,7 @@ public:
     beast::http::response<beast::http::file_body> res{
         std::piecewise_construct, std::make_tuple(std::move(body)),
         std::make_tuple(beast::http::status::ok, req_.version())};
-    res.set(beast::http::field::server, this->settings_.service_version);
+    res.set(beast::http::field::server, s.service_version);
     res.set(beast::http::field::content_type, mime_type(path));
     res.content_length(size);
     res.keep_alive(req_.keep_alive());

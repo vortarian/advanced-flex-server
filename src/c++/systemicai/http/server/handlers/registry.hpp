@@ -10,13 +10,15 @@ namespace systemicai::http::server::handlers {
 template< class Fields, class Send >
 class HandlerRegistry {
 public:
-  typedef std::shared_ptr< Handler<Fields, Send> > HandlerReference;
+  typedef Fields type_fields;
+  typedef Send type_send;
+  typedef std::shared_ptr< Handler<type_fields, type_send> > HandlerReference;
   typedef std::list<HandlerReference> HandlerCollection;
 
-  HandlerRegistry(const settings& s) {
+  HandlerRegistry() {
     // Setup these handlers by default
-    addHandler(std::make_shared< default_handle_request<Fields, Send> >(s));
-    addHandler(std::make_shared< live_request<Fields, Send> >(s));
+    addHandler(std::make_shared< default_handle_request<type_fields, type_send> >());
+    addHandler(std::make_shared< live_request<type_fields, type_send> >());
   }
 
   HandlerRegistry(const HandlerRegistry& hr) {

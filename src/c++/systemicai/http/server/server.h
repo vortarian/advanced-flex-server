@@ -40,7 +40,20 @@ namespace systemicai::http::server {
     class listener : public std::enable_shared_from_this<listener>
     {
     public:
-        listener( net::io_context& ioc, ssl::context& ctx, tcp::endpoint endpoint, const settings& s);
+        /**
+         * Construct an http listener that allows ssl or plain text sessions.
+         * @param ioc IO Context for controlling the http server
+         * @param ctx SSL Context for use in ssl settings
+         * @param endpoint The tcp endpoint to listen on for connections
+         * @param s Configuration settings for the services
+         * @param r_ssl A registry of https handlers for ssl which understands the queuing mechanism for the server.
+         *  Recommened to use the handler defined by ssl_http_session::type_handler_registry.  Handlers can be added
+         *  to the collection to customize behavior.  @see systemicai::http::server::handlers::handler for the base class.
+         * @param r_plain A registry of http handlers which understands the queuing mechanism for the server.
+         *  Recommened to use the handler defined by plain_http_session::type_handler_registry.  Handlers can be added
+         *  to the collection to customize behavior.  @see systemicai::http::server::handlers::handler for the base class.
+         */
+        listener( net::io_context& ioc, ssl::context& ctx, tcp::endpoint endpoint, const settings& s, const ssl_http_session::type_handler_registry& r_ssl, const plain_http_session::type_handler_registry& r_plain);
         void run();
 
     private:
@@ -51,8 +64,8 @@ namespace systemicai::http::server {
         ssl::context& ctx_;
         tcp::acceptor acceptor_;
         const settings settings_;
-        ssl_http_session::type_handler_registry registry_handler_ssl;
-        plain_http_session::type_handler_registry registry_handler_plain;
+        const ssl_http_session::type_handler_registry& registry_handler_ssl;
+        const plain_http_session::type_handler_registry& registry_handler_plain;
     };
 
 } // namespace systemicai::http::server

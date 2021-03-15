@@ -29,6 +29,7 @@
 
 #include "functions.h"
 #include "server.h"
+#include "systemicai/http/server/sessions.hpp"
 
 namespace systemicai::http::server {
     //------------------------------------------------------------------------------
@@ -120,15 +121,17 @@ namespace systemicai::http::server {
             net::io_context& ioc,
             ssl::context& ctx,
             tcp::endpoint endpoint,
-            const settings& s
+            const settings& s,
+            const ssl_http_session::type_handler_registry& r_ssl,
+            const plain_http_session::type_handler_registry& r_plain
             )
             : std::enable_shared_from_this<listener>()
             , ioc_(ioc)
             , ctx_(ctx)
             , acceptor_(net::make_strand(ioc))
             , settings_(s)
-            , registry_handler_ssl(s)
-            , registry_handler_plain(s)
+            , registry_handler_ssl(r_ssl)
+            , registry_handler_plain(r_plain)
             
     {
         beast::error_code ec;

@@ -260,14 +260,14 @@ public:
     auto req = parser_->release();
     bool handled = false;
     for (auto handler : handlers_.handlers()) 
-      if (handler->handles(req)) {
+      if (handler->handles(req, settings_)) {
         handled = true;
-        handler->handle(req, queue_);
+        handler->handle(req, queue_, settings_);
         break;
       }
     if(!handled) {
-      const static handlers::internal_server_error< beast::http::fields, queue<http_session> > ise(settings_);
-      ise.handle(req, queue_);
+      const handlers::internal_server_error< beast::http::fields, queue<http_session> > ise;
+      ise.handle(req, queue_, settings_);
     }
 
     // If we aren't at the queue limit, try to pipeline another request

@@ -1,12 +1,15 @@
+#ifndef SYSTEMICAI_HTTP_SERVER_SERVICE_HPP
+#define SYSTEMICAI_HTTP_SERVER_SERVICE_HPP
+
 //------------------------------------------------------------------------------
 
+#include "systemicai/http/server/sessions.hpp"
 #include <thread>
 
 #include <systemicai/http/server/namespace.h>
 #include <systemicai/http/server/server.h>
 #include <systemicai/common/certificate.h>
 #include <systemicai/common/exception.h>
-
 
 namespace systemicai::http::server {
 
@@ -16,9 +19,21 @@ class service {
   std::shared_ptr<boost::asio::io_context> _ioc;
   ssl::context& _ssl_ctx;
   const settings& settings_;
+  // TODO: Should these just be added to a context along with the settings?
+  const ssl_http_session::type_handler_registry& handler_registry_ssl;
+  const plain_http_session::type_handler_registry& handler_registry_plain;
 
   public:
-  explicit service(const settings& s, ssl::context& sslc) : _ssl_ctx(sslc), settings_(s) {
+  explicit service(
+        const settings& s
+      , ssl::context& sslc
+      , const ssl_http_session::type_handler_registry& r_ssl
+      , const plain_http_session::type_handler_registry& r_plain
+    ) : _ssl_ctx(sslc)
+        , settings_(s)
+        , handler_registry_ssl(r_ssl)
+        , handler_registry_plain(r_plain)
+  {
   }
 
   /**
@@ -42,7 +57,10 @@ class service {
         *_ioc,
         _ssl_ctx,
         boost::asio::ip::tcp::endpoint{address, port},
-        settings_)->run();
+        settings_,
+        handler_registry_ssl,
+        handler_registry_plain
+        )->run();
 
     // Capture SIGINT and SIGTERM to perform a clean shutdown
     boost::asio::signal_set signals(*_ioc, SIGINT, SIGTERM);
@@ -100,3 +118,5 @@ class service {
   }
 };
 }
+
+#endif // SYSTEMICAI_HTTP_SERVER_SERVICE_HPP

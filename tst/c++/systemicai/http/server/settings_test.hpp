@@ -28,7 +28,7 @@ static const char* json(R"(
         "get": "10000"
       },
       "thread": {
-        "io": "22"
+        "io": "2"
       }
     }
   }

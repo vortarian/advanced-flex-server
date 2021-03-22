@@ -7,6 +7,7 @@
 #include <systemicai/http/server/service.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
+#include <boost/url/urls.hpp>
 
 using namespace systemicai::http::server;
 using namespace std;
@@ -58,6 +59,7 @@ template<class Registry> void register_handlers(Registry& r) {
     }
 
     void handle(const beast::http::request_header<typename Registry::type_fields> &req, typename Registry::type_send& send, const settings& s) const {
+      boost::urls::url u(req.target());
       beast::http::request<beast::http::string_body, typename Registry::type_fields> req_(req);
       beast::http::response<beast::http::string_body> res{beast::http::status::ok, req.version()};
       res.set(beast::http::field::server, s.service_version);
@@ -66,7 +68,23 @@ template<class Registry> void register_handlers(Registry& r) {
 
       std::stringstream sstr;
       sstr << "<html><body>";
-      sstr << "<br/><h2>Target</h2><br>";
+      sstr << "<br/><h2>Url</h2><br>";
+      sstr << "<ul>";;
+      // These 5 attributes are only available in local urls - http doesn't provide them (though they can often be assumed via headers)
+      // sstr << "<li>Scheme:&nbsp;" << u.scheme() << "</li>";
+      // sstr << "<li>User:&nbsp;" << u.user() << "</li>";
+      // sstr << "<li>Password:&nbsp;" << u.password() << "</li>";
+      // sstr << "<li>Host:&nbsp;" << u.host() << "</li>";
+      // sstr << "<li>Port:&nbsp;" << u.port() << "</li>";
+      sstr << "<li>Path:&nbsp;" << u.encoded_path() << "</li>";
+      for(auto param : u.params()) {
+        sstr << "<li>Param:" << param.encoded_key() << ":&nbsp;" << param.encoded_value() << "</li>";
+      }
+      // Segments iteration seems to cause an assertion 
+      // for(auto segment : u.segments()) {
+      //  sstr << "<li>Segement:" << segment.encoded_string() << "</li>";
+      //}
+      sstr << "</ul><br/><h2>Target</h2><br>";
       sstr << req_.target();
       sstr << "<br/><h2>Headers</h2><br><ul>";
       for(auto hdr = req_.base().begin(); hdr != req_.base().end(); hdr++) {

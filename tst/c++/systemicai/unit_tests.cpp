@@ -17,17 +17,21 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-
+#include <boost/url.hpp>
+#include <boost/lexical_cast.hpp>
 #include <cstddef>
 #include <systemicai/http/server/settings.h>
 #include <systemicai/http/server/service.hpp>
 #include <systemicai/http/server/server.h>
 
+#include "http/client/simple_client.hpp"
+#include "http/client/ssl_client.hpp"
+
 // All of our unit tests must be included between these two macros (and must not use these two macros)
 BOOST_AUTO_TEST_SUITE(test_systemicai_http)
 
 #include <systemicai/http/server/settings_test.hpp>
-#include <systemicai/http/server/server_test.cpp>
+#include <systemicai/http/server/server_test.hpp>
 #include <systemicai/http/server/settings_test.cpp>
 
 BOOST_AUTO_TEST_SUITE_END()

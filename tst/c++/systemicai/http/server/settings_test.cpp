@@ -52,6 +52,6 @@ BOOST_AUTO_TEST_CASE( test_systemicai_http_server_settings_json_parsing )
   BOOST_TEST(settings.timeout_put == 3000);
   BOOST_TEST(settings.timeout_post == 3000);
   BOOST_TEST(settings.timeout_get == 10000);
-  BOOST_TEST(settings.thread_io == 22);
+  BOOST_TEST(settings.thread_io == 2);
 }
 

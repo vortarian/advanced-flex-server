@@ -28,6 +28,11 @@ add_definitions(-D_REENTRANT -DBOOST_NO_DEPRECATED )
 #add_definitions(-DBOOST_ALL_DYN_LINK)
 add_definitions(-DBOOST_ALL_NO_LIB)
 
+include_directories(
+  src/c++
+  ${CMAKE_SOURCE_DIR}/imp/url/include
+)
+
 find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
 if (CMAKE_CXX_CPPCHECK)
   if(NOT DEFINED CONAN_USER_HOME)
@@ -43,10 +48,9 @@ if (CMAKE_CXX_CPPCHECK)
       "--suppressions-list=${CMAKE_SOURCE_DIR}/.cppCheck.suppressions"
       #"--suppress=missingIncludeSystem"
       #"-I ${CONAN_INCLUDE_DIRS}"
+      "-I${CMAKE_SOURCE_DIR}/imp/url/include"
   )
 endif()
-
-include_directories(src/c++)
 
 set(STANDARD_LIBRARIES
     ${CONAN_LIBS}
@@ -78,6 +82,7 @@ target_link_libraries(client ${STANDARD_LIBRARIES})
 
 add_executable(${PROJECT_NAME}
    src/c++/systemicai/cmd/httpd.cpp
+   imp/url/src/src.cpp
    src/c++/systemicai/http/server/functions.h
    src/c++/systemicai/http/server/functions.cpp
    src/c++/systemicai/http/server/handlers.hpp
@@ -97,6 +102,7 @@ target_link_libraries(${PROJECT_NAME} ${STANDARD_LIBRARIES})
 
 add_executable(unit-tests
   tst/c++/systemicai/unit_tests.cpp
+  imp/url/src/src.cpp
   src/c++/systemicai/http/server/functions.cpp
   src/c++/systemicai/http/server/server.cpp)
 target_include_directories(unit-tests PRIVATE tst/c++)
@@ -105,6 +111,7 @@ target_link_libraries(unit-tests ${STANDARD_LIBRARIES})
 # The coverage tests is the same code, but seperated out to save build time during local debugging
 add_executable(coverage-tests
   tst/c++/systemicai/unit_tests.cpp
+  imp/url/src/src.cpp
   src/c++/systemicai/http/server/functions.cpp
   src/c++/systemicai/http/server/server.cpp)
 target_include_directories(coverage-tests PRIVATE tst/c++)
@@ -126,7 +133,7 @@ add_custom_target(
 
 add_custom_target(
     cppcheck ALL
-    COMMAND ${CMAKE_CXX_CPPCHECK} ${CMAKE_SOURCE_DIR}/src/c++ ${CMAKE_SOURCE_DIR}/tst/c++
+    COMMAND ${CMAKE_CXX_CPPCHECK} ${CMAKE_SOURCE_DIR}/src/c++ ${CMAKE_SOURCE_DIR}/tst/c++ 
 )
 
 add_custom_target(

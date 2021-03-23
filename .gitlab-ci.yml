@@ -20,6 +20,7 @@ variables:
   CXX_STANDARD_LIBRARY: "libc++"
   CXX_CONTAINER: "registry.gitlab.com/k8s.makerlabs.us/build-cxx:ubi8-clang-${LLVM_VERSION}"
   CXXFLAGS: "-std=c++${CXX_STANDARD} -stdlib=${CXX_STANDARD_LIBRARY}"
+  GIT_SUBMODULE_STRATEGY: recursive
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
